@@ -27,6 +27,7 @@ from uofiddler.core.multis import MultisManager
 from uofiddler.core.animations import AnimationsManager
 from uofiddler.core.fonts import FontsManager
 from uofiddler.core.maps import MapManager
+from uofiddler.core.gamedata import GameDataManager
 
 from uofiddler.gui.theme import DARK_THEME_QSS
 from uofiddler.gui.tabs.items_tab import ItemsTab
@@ -46,6 +47,7 @@ from uofiddler.gui.tabs.fonts_tab import FontsTab
 from uofiddler.gui.tabs.skills_tab import SkillsTab
 from uofiddler.gui.tabs.speech_tab import SpeechTab
 from uofiddler.gui.tabs.animdata_tab import AnimDataTab
+from uofiddler.gui.tabs.gamedata_tab import GameDataTab
 from uofiddler.gui.tabs.settings_dialog import SettingsDialog
 from uofiddler.gui.widgets.lazy_tab import LazyTabWrapper
 
@@ -113,13 +115,14 @@ class MainWindow(QMainWindow):
             ("Skills", lambda p: SkillsTab(p)),
             ("Speech", lambda p: SpeechTab(p)),
             ("AnimData", lambda p: AnimDataTab(p)),
+            ("GameData", lambda p: GameDataTab(p)),
         ]
 
         # Tab 0 (Items) loads immediately so the main screen is active right away
         self.tab_items = ItemsTab(self)
         self.tab_widget.addTab(self.tab_items, "Items")
 
-        # Tabs 1 to 16 are wrapped in LazyTabWrapper with loading indicator
+        # Tabs 1 to 17 are wrapped in LazyTabWrapper with loading indicator
         for title, factory in self.tab_defs[1:]:
             wrapper = LazyTabWrapper(title, factory, self)
             self.tab_widget.addTab(wrapper, title)
@@ -134,11 +137,11 @@ class MainWindow(QMainWindow):
 
     def __getattr__(self, name):
         tab_attr_map = {
-            "tab_items": 0, "tab_land": 1, "tab_tiledata": 2, "tab_gumps": 3,
+            "tab_items": 0, "tab_land": 1, "tab_land_tiles": 1, "tab_tiledata": 2, "tab_gumps": 3,
             "tab_hues": 4, "tab_textures": 5, "tab_radar": 6, "tab_anim": 7,
             "tab_cliloc": 8, "tab_sounds": 9, "tab_map": 10, "tab_multis": 11,
             "tab_light": 12, "tab_fonts": 13, "tab_skills": 14, "tab_speech": 15,
-            "tab_animdata": 16
+            "tab_animdata": 16, "tab_gamedata": 17
         }
         if hasattr(self, "tab_widget") and name in tab_attr_map:
             idx = tab_attr_map[name]
@@ -181,11 +184,19 @@ class MainWindow(QMainWindow):
         AnimationsManager.get_instance().reload()
         FontsManager.get_instance().reload()
         MapManager.get_instance().reload()
+        GameDataManager.get_instance().reload()
 
         # Re-initialize tabs
         self.init_tabs()
         self.update_status_bar()
         QMessageBox.information(self, "Reload", "All client files successfully reloaded.")
+
+    def navigate_to_gump(self, gump_id: int):
+        """Switches to the Gumps tab and selects gump_id."""
+        self.tab_widget.setCurrentIndex(3)
+        gumps_tab = self.tab_gumps
+        if hasattr(gumps_tab, "select_gump"):
+            gumps_tab.select_gump(gump_id)
 
     def show_about(self):
         QMessageBox.about(

@@ -27,13 +27,14 @@ class IndexEntry:
 class FileIndex:
     def __init__(
         self,
-        idx_file: str,
-        mul_file: str,
+        idx_file: Optional[str] = None,
+        mul_file: Optional[str] = None,
         uop_file: Optional[str] = None,
         max_entries: int = 0x14000,
         file_id: int = -1,
         uop_ext: str = ".dat",
-        has_extra: bool = False
+        has_extra: bool = False,
+        direct_path: Optional[str] = None
     ):
         self.idx_file = idx_file
         self.mul_file = mul_file
@@ -42,6 +43,7 @@ class FileIndex:
         self.file_id = file_id
         self.uop_ext = uop_ext
         self.has_extra = has_extra
+        self.direct_path = direct_path
 
         self.entries: List[IndexEntry] = [IndexEntry() for _ in range(max_entries)]
         self.mul_path: Optional[str] = None
@@ -59,13 +61,28 @@ class FileIndex:
             self._mul_stream = None
 
         fm = FileManager.get_instance()
-        idx_path = fm.get_file_path(self.idx_file) if self.idx_file else None
-        mul_path = fm.get_file_path(self.mul_file) if self.mul_file else None
-        uop_path = fm.get_file_path(self.uop_file) if self.uop_file else None
-
         self.entries = [IndexEntry() for _ in range(self.max_entries)]
 
-        # Check UOP first if specified and present
+        # 1. Direct path if supplied
+        if self.direct_path and os.path.exists(self.direct_path):
+            if self.direct_path.lower().endswith(".uop"):
+                try:
+                    self._load_uop(self.direct_path)
+                    self.mul_path = self.direct_path
+                    self._mul_stream = open(self.direct_path, "rb")
+                    self._is_uop = True
+                    return
+                except Exception as e:
+                    print(f"[FileIndex] Failed to parse direct UOP {self.direct_path}: {e}")
+
+        # 2. Check UOP file (Classic dir first, then EC dir)
+        uop_path = None
+        if self.uop_file:
+            if os.path.exists(self.uop_file):
+                uop_path = self.uop_file
+            else:
+                uop_path = fm.get_file_path(self.uop_file) or fm.get_ec_file_path(self.uop_file)
+
         if uop_path and os.path.exists(uop_path):
             try:
                 self._load_uop(uop_path)
@@ -76,7 +93,10 @@ class FileIndex:
             except Exception as e:
                 print(f"[FileIndex] Failed to parse UOP {uop_path}: {e}")
 
-        # Fallback to MUL + IDX
+        # 3. Fallback to MUL + IDX
+        idx_path = fm.get_file_path(self.idx_file) if self.idx_file else None
+        mul_path = fm.get_file_path(self.mul_file) if self.mul_file else None
+
         if idx_path and mul_path and os.path.exists(idx_path) and os.path.exists(mul_path):
             try:
                 self._load_mul(idx_path, mul_path)

@@ -7,6 +7,7 @@ import struct
 from typing import Optional, Dict
 from PIL import Image
 from uofiddler.core.file_index import FileIndex
+from uofiddler.core.files import FileManager
 from uofiddler.core.colors import color16_to_rgba, rgba_to_color16
 
 
@@ -19,6 +20,7 @@ class GumpManager:
         self._replaced: Dict[int, Image.Image] = {}
         self._removed: set[int] = set()
         self.max_gump_id = 0xFFFF
+        self.client_mode: str = "classic"  # 'classic' or 'enhanced'
         self.reload()
 
     @classmethod
@@ -27,6 +29,13 @@ class GumpManager:
             cls._instance = GumpManager()
         return cls._instance
 
+    def set_client_mode(self, mode: str):
+        if mode not in ("classic", "enhanced"):
+            raise ValueError(f"Invalid client mode: {mode}")
+        if self.client_mode != mode:
+            self.client_mode = mode
+            self.reload()
+
     def reload(self):
         if self._file_index:
             self._file_index.close()
@@ -34,15 +43,27 @@ class GumpManager:
         self._replaced.clear()
         self._removed.clear()
 
-        self._file_index = FileIndex(
-            "Gumpidx.mul",
-            "Gumpart.mul",
-            "gumpartLegacyMUL.uop",
-            max_entries=0x10000,
-            file_id=12,
-            uop_ext=".tga",
-            has_extra=True
-        )
+        fm = FileManager.get_instance()
+        if self.client_mode == "enhanced":
+            ec_gump = fm.get_ec_file_path("gumpartLegacyMUL.uop")
+            self._file_index = FileIndex(
+                uop_file="gumpartLegacyMUL.uop",
+                direct_path=ec_gump,
+                max_entries=0x10000,
+                file_id=12,
+                uop_ext=".tga",
+                has_extra=True
+            )
+        else:
+            self._file_index = FileIndex(
+                "Gumpidx.mul",
+                "Gumpart.mul",
+                "gumpartLegacyMUL.uop",
+                max_entries=0x10000,
+                file_id=12,
+                uop_ext=".tga",
+                has_extra=True
+            )
 
     def is_valid(self, index: int) -> bool:
         if index < 0 or index > self.max_gump_id:

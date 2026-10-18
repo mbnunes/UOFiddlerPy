@@ -4,12 +4,13 @@ Items Tab: Static item art viewer, inspector, and editor with hue testing and ex
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QLineEdit,
-    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QSpinBox
+    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QSpinBox, QComboBox
 )
 from PyQt6.QtCore import Qt
 from uofiddler.core.art import ArtManager
 from uofiddler.core.tiledata import TileDataManager
 from uofiddler.core.hues import HuesManager
+from uofiddler.core.gamedata import GameDataManager
 from uofiddler.gui.widgets.image_canvas import ImageCanvas
 from uofiddler.gui.widgets.virtual_tile_view import TileBrowserWidget
 
@@ -20,7 +21,10 @@ class ItemsTab(QWidget):
         self.art_mgr = ArtManager.get_instance()
         self.tile_mgr = TileDataManager.get_instance()
         self.hue_mgr = HuesManager.get_instance()
+        self.game_data_mgr = GameDataManager.get_instance()
         self.current_item_id = 0
+        self.current_male_gump = None
+        self.current_female_gump = None
         self.init_ui()
 
     def init_ui(self):
@@ -31,6 +35,17 @@ class ItemsTab(QWidget):
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Client selector (Classic 2D vs Enhanced 3D UOP)
+        client_row = QHBoxLayout()
+        client_row.setContentsMargins(4, 4, 4, 4)
+        client_row.addWidget(QLabel("Client:"))
+        self.combo_client = QComboBox()
+        self.combo_client.addItem("Classic (2D Art)", "classic")
+        self.combo_client.addItem("Enhanced 3D (UOP)", "enhanced")
+        self.combo_client.currentIndexChanged.connect(self.on_client_changed)
+        client_row.addWidget(self.combo_client)
+        left_layout.addLayout(client_row)
 
         self.browser = TileBrowserWidget(self)
         count = len(self.tile_mgr.item_tiles) if self.tile_mgr.item_tiles else 0x10000
@@ -71,6 +86,7 @@ class ItemsTab(QWidget):
         self.lbl_weight = QLabel("-")
         self.lbl_height = QLabel("-")
         self.lbl_anim = QLabel("-")
+        self.lbl_ec_model = QLabel("-")
 
         prop_layout.addRow("Item ID:", self.lbl_id)
         prop_layout.addRow("Name:", self.lbl_name)
@@ -78,7 +94,41 @@ class ItemsTab(QWidget):
         prop_layout.addRow("Weight:", self.lbl_weight)
         prop_layout.addRow("Height:", self.lbl_height)
         prop_layout.addRow("Anim ID:", self.lbl_anim)
+        prop_layout.addRow("EC 3D Model:", self.lbl_ec_model)
         right_layout.addWidget(prop_box)
+
+        # Equipment Gump Linker
+        equip_box = QGroupBox("Worn Equipment & Gump Linker")
+        equip_layout = QVBoxLayout(equip_box)
+
+        race_row = QHBoxLayout()
+        race_row.addWidget(QLabel("Body / Race:"))
+        self.combo_body = QComboBox()
+        self.combo_body.addItem("Human Male (400)", 400)
+        self.combo_body.addItem("Human Female (401)", 401)
+        self.combo_body.addItem("Elf Male (605)", 605)
+        self.combo_body.addItem("Elf Female (606)", 606)
+        self.combo_body.addItem("Gargoyle Male (666)", 666)
+        self.combo_body.addItem("Gargoyle Female (667)", 667)
+        self.combo_body.currentIndexChanged.connect(lambda: self.update_display(self.current_item_id))
+        race_row.addWidget(self.combo_body)
+        equip_layout.addLayout(race_row)
+
+        self.lbl_male_gump = QLabel("Male Gump: -")
+        self.lbl_female_gump = QLabel("Female Gump: -")
+
+        gump_btn_row = QHBoxLayout()
+        self.btn_goto_male_gump = QPushButton("View Male Gump")
+        self.btn_goto_female_gump = QPushButton("View Female Gump")
+        self.btn_goto_male_gump.clicked.connect(self.on_goto_male_gump)
+        self.btn_goto_female_gump.clicked.connect(self.on_goto_female_gump)
+        gump_btn_row.addWidget(self.btn_goto_male_gump)
+        gump_btn_row.addWidget(self.btn_goto_female_gump)
+
+        equip_layout.addWidget(self.lbl_male_gump)
+        equip_layout.addWidget(self.lbl_female_gump)
+        equip_layout.addLayout(gump_btn_row)
+        right_layout.addWidget(equip_box)
 
         # Buttons: Export, Replace, Remove
         btn_layout = QHBoxLayout()
@@ -110,6 +160,12 @@ class ItemsTab(QWidget):
 
     def get_item_thumb(self, item_id: int):
         return self.art_mgr.get_static(item_id)
+
+    def on_client_changed(self):
+        mode = self.combo_client.currentData() or "classic"
+        self.art_mgr.set_client_mode(mode)
+        self.browser.refresh()
+        self.update_display(self.current_item_id)
 
     def select_item(self, item_id: int):
         self.browser.select_id(item_id)
@@ -144,6 +200,45 @@ class ItemsTab(QWidget):
             self.lbl_weight.setText("-")
             self.lbl_height.setText("-")
             self.lbl_anim.setText("-")
+
+        # Update EC 3D mapping
+        if item_id in self.game_data_mgr.legacy_to_new:
+            new_id, subtype = self.game_data_mgr.legacy_to_new[item_id]
+            self.lbl_ec_model.setText(f"<font color='#81c784'>NewID: {new_id}, SubType: {subtype}</font>")
+        else:
+            self.lbl_ec_model.setText("<font color='#888888'>Legacy Tile Texture</font>")
+
+        # Update Equipment Gump links
+        if tile and tile.anim_id > 0:
+            body_type = self.combo_body.currentData() or 400
+            male_gump = self.game_data_mgr.get_equip_gump(tile.anim_id, body_type=body_type, gender=0)
+            female_gump = self.game_data_mgr.get_equip_gump(tile.anim_id, body_type=body_type, gender=1)
+
+            self.current_male_gump = male_gump
+            self.current_female_gump = female_gump
+            self.lbl_male_gump.setText(f"Male Gump: <font color='#64b5f6'>0x{male_gump:04X} ({male_gump})</font>")
+            self.lbl_female_gump.setText(f"Female Gump: <font color='#f48fb1'>0x{female_gump:04X} ({female_gump})</font>")
+            self.btn_goto_male_gump.setEnabled(True)
+            self.btn_goto_female_gump.setEnabled(True)
+        else:
+            self.current_male_gump = None
+            self.current_female_gump = None
+            self.lbl_male_gump.setText("Male Gump: <font color='#888888'>N/A (Not equipment)</font>")
+            self.lbl_female_gump.setText("Female Gump: <font color='#888888'>N/A (Not equipment)</font>")
+            self.btn_goto_male_gump.setEnabled(False)
+            self.btn_goto_female_gump.setEnabled(False)
+
+    def on_goto_male_gump(self):
+        if self.current_male_gump:
+            main_win = self.window()
+            if hasattr(main_win, "navigate_to_gump"):
+                main_win.navigate_to_gump(self.current_male_gump)
+
+    def on_goto_female_gump(self):
+        if self.current_female_gump:
+            main_win = self.window()
+            if hasattr(main_win, "navigate_to_gump"):
+                main_win.navigate_to_gump(self.current_female_gump)
 
     def on_hue_changed(self):
         self.update_display(self.current_item_id)

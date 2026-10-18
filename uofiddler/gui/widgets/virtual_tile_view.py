@@ -355,6 +355,16 @@ class TileBrowserWidget(QWidget):
         self.lbl_status.setStyleSheet("color: #888; font-size: 11px; padding: 2px;")
         layout.addWidget(self.lbl_status)
 
+    @property
+    def count(self) -> int:
+        if self._ids is not None:
+            return len(self._ids)
+        return self.grid_model.total_count if hasattr(self, "grid_model") and self.grid_model else 0
+
+    @property
+    def ids(self) -> Optional[List[int]]:
+        return self._ids
+
     def set_data(
         self,
         count: int,

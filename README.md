@@ -35,6 +35,11 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 - **Interactive Canvas**: Full mouse wheel zoom, click-and-drag pan, and checkerboard transparency background.
 - **Hue Tester**: Preview any of the 3,000 hues applied directly to the item (with proper `PartialHue` flag handling).
 - **TileData Inspector**: View name, flags, weight, layer/quality, height, and associated animation ID.
+- **🔗 Worn Equipment & Gump Linker**:
+  - Automatic **Item ID ➔ Paperdoll Gump ID** resolution for armor, clothing, weapons, and cloaks.
+  - Race/Body selector: Humans (400/401), Elves (605/606), and Gargoyles (666/667).
+  - Automated lookup of `Equipconv` tables and gender rules (+10000 female offset).
+  - One-click **"View Male Gump"** and **"View Female Gump"** buttons with instant navigation to the Gumps tab!
 - **Operations**: Export artwork to PNG/BMP, replace graphics with external images, and remove entries.
 
 ### 2. 🌿 Land Tiles (Terrain)
@@ -54,7 +59,12 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 - **Direct Save**: Clean, structured saving directly into `tiledata.mul`.
 
 ### 4. 🖼️ Gumps
+- **Dual-Client Client Switcher**: On-the-fly switching between **Classic (2D)** and **Enhanced (3D)** clients.
 - **Dual Format Support**: Reads classic `gumpart.mul` / `gumpidx.mul` and modern Mythic `gumpartLegacyMUL.uop` packages.
+- **📦 Container Bounding Box Overlay**:
+  - Automatic container recognition from `data/gamedata/legacycontainers.csv` inside `GameData.uop`.
+  - Displays exact container bounding box (`left, top, right, bottom, width, height`).
+  - Real-time semi-transparent green overlay of valid drag-and-drop area with toggle checkbox.
 - **Full Decompression Pipeline**: Transparent dual decompression (Zlib + Mythic Move-to-Front block decompressor).
 - **Interactive Zoom Canvas**: Inspect large UI windows (e.g., 640x480 book menus) or small buttons and icons.
 - **Export & Import**: Export gumps to transparent PNG or import custom UI assets.
@@ -69,9 +79,11 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 - **Name Editing & Saving**: Rename hues and save alterations back into `hues.mul`.
 
 ### 6. 🧱 Textures
-- **Grid (Default) & List Modes**: Fast visual thumbnail navigation or detailed table with exact dimensions (64x64 or 128x128).
-- **Terrain Textures**: Full support for standard 64x64 (8,192 bytes) and high-resolution 128x128 (32,768 bytes) formats.
-- **Accurate Color Conversion**: Precise 16-bit RGB 555 to 32-bit RGBA decoding.
+- **Multi-Source Client Selector**: Switch on the fly between **Classic (2D MUL)**, **Enhanced Legacy (UOP)**, and **Enhanced 3D (UOP)**.
+- **Enhanced Client DDS Textures**: Full native reading of **over 52,940 DDS textures** from `LegacyTexture.uop` and **9,790 modern textures** from `Texture.uop`!
+- **Grid (Default) & List Modes**: Fast visual thumbnail navigation or detailed table with exact dimensions (64x64, 64x128, 128x128, etc.).
+- **Terrain Textures**: Full support for classic 64x64 and 128x128 16-bit RGB 555 formats as well as modern DirectX DDS textures.
+- **Accurate Color Conversion**: Precise decoding from 16-bit RGB 555 and DXT compression directly into 32-bit RGBA.
 - **Import & Export**: Extract textures for Photoshop/GIMP editing or import new PNG files.
 
 ### 7. 🛰️ RadarCol (Minimap Colors)
@@ -140,6 +152,20 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 ### 17. ⏱️ AnimData (Tile Animation Timing)
 - Read and edit `animdata.mul`.
 - Configure frame counts, animation intervals, start delays, and frame offset sequences for animated world tiles.
+
+### 18. 📊 GameData (3D Enhanced Tables & CSVs Inspector)
+- **Full `GameData.uop` Explorer**: Native extraction and browsing across all **79 metadata configuration tables** from the Enhanced Client (3D).
+- **Interactive Table Grid**: Formatted grid view (`QTableWidget`) with headers, alternating row colors, column resizing, and real-time text filter.
+- **Raw CSV / XML Inspector**: Monospaced text tab to view and copy the raw configuration text verbatim.
+- **Key Cataloged Tables**:
+  - `legacycontainers.csv`: Exact drag-and-drop bounding boxes for all game containers.
+  - `legacy_to_new_items.csv`: Direct translation mapping from 2D Classic item IDs to new 3D models and textures.
+  - `body_to_mesh.csv`: Translation of classic body types to high-definition 3D mesh files (`.dds`).
+  - `recipes.csv`: Comprehensive crafting recipe catalog, skill requirements, and ingredient limits.
+  - House placement data, house sign gumps, skin hues, horn styles, and skill definitions.
+- **Batch & Table Export**:
+  - Export individual tables to **CSV** or **JSON**.
+  - One-click **"Export All 79 Tables..."** batch exporter to any folder on your machine.
 
 ---
 

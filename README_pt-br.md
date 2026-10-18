@@ -35,6 +35,11 @@ O **UOFiddlerPy** resolve tudo isso:
 - **Canvas Interativo**: Suporte completo a zoom com a roda do mouse, arrasto (pan) e fundo quadriculado de transparência.
 - **Testador de Hues**: Selecione e visualize qualquer uma das 3.000 matizes aplicadas diretamente sobre o item (incluindo tratamento de itens com flag `PartialHue`).
 - **Inspetor de TileData**: Visualize nome, flags, peso, camada/qualidade, altura e animação associada.
+- **🔗 Worn Equipment & Gump Linker**:
+  - Resolução automática de **Item ID ➔ Gump ID de Paperdoll** para armaduras, roupas, armas e capas.
+  - Seletor de Raça/Corpo: Humanos (400/401), Elfos (605/606) e Gárgulas (666/667).
+  - Consulta automática da tabela `Equipconv` e regras de gênero (offset feminino +10000).
+  - Botões diretos **"View Male Gump"** e **"View Female Gump"** com navegação instantânea para a aba Gumps!
 - **Operações**: Exportação de imagens para PNG/BMP, substituição de arte por imagem externa e remoção.
 
 ### 2. 🌿 Land Tiles (Terrenos)
@@ -54,7 +59,12 @@ O **UOFiddlerPy** resolve tudo isso:
 - **Salvamento Direto**: Gravação estruturada e compatível diretamente em `tiledata.mul`.
 
 ### 4. 🖼️ Gumps
-- **Suporte Duplo**: Lê tanto o formato clássico `gumpart.mul` / `gumpidx.mul` quanto os pacotes Mythic modernos `gumpartLegacyMUL.uop`.
+- **Suporte Duplo Dual-Client**: Combobox integrado para alternar entre **Classic (2D)** e **Enhanced (3D)** em tempo real.
+- **Suporte a UOP e MUL**: Lê `gumpart.mul` / `gumpidx.mul` e pacotes Mythic modernos `gumpartLegacyMUL.uop`.
+- **📦 Container Bounding Box Overlay**:
+  - Detecção automática de contêineres a partir de `data/gamedata/legacycontainers.csv` do `GameData.uop`.
+  - Exibe dimensões exatas de área útil (`left, top, right, bottom, width, height`).
+  - Desenho semi-transparente em tempo real da área de drop válida (com toggle para ativar/desativar).
 - **Descompressão Completa**: Implementação de pipeline duplo (Zlib + descompressor de blocos Mythic).
 - **Canvas com Zoom**: Visualização de janelas de interface grandes (como menus de 640x480) ou pequenos botões e ícones.
 - **Exportação e Importação**: Salve gumps em PNG transparente ou importe novas artes.
@@ -69,9 +79,11 @@ O **UOFiddlerPy** resolve tudo isso:
 - **Edição de Nomes e Gravação**: Renomeie qualquer matiz e salve as alterações em `hues.mul`.
 
 ### 6. 🧱 Textures
-- **Visualização em Grid (Padrão) e Lista**: Navegação visual rápida por miniaturas de texturas ou tabela com dimensões exatas (64x64 ou 128x128).
-- **Texturas de Terreno**: Suporte para tamanhos padrão 64x64 (8.192 bytes) e alta resolução 128x128 (32.768 bytes).
-- **Conversão de Cores**: Decodificação precisa de 16-bit RGB 555 para RGBA de 32-bit.
+- **Seletor Multi-Cliente Integrado**: Alterne instantaneamente entre **Classic (2D MUL)**, **Enhanced Legacy (UOP)** e **Enhanced 3D (UOP)**.
+- **Suporte a Texturas DDS do Cliente 3D**: Leitura nativa de **mais de 52.940 texturas DDS** de `LegacyTexture.uop` e **9.790 texturas modernas** de `Texture.uop`!
+- **Visualização em Grid (Padrão) e Lista**: Navegação visual rápida por miniaturas de texturas ou tabela com dimensões exatas (64x64, 64x128, 128x128, etc.).
+- **Texturas Clássicas e Modernas**: Suporte a formatos clássicos 16-bit RGB 555 e arquivos DirectX DDS (DXT1/DXT5).
+- **Conversão de Cores**: Decodificação precisa de 16-bit RGB 555 e compressões DXT para RGBA de 32-bit.
 - **Importação e Exportação**: Extraia texturas para edição no Photoshop/GIMP ou importe arquivos PNG para o cliente.
 
 ### 7. 🛰️ RadarCol (Cores de Radar/Minimapa)
@@ -140,6 +152,20 @@ O **UOFiddlerPy** resolve tudo isso:
 ### 17. ⏱️ AnimData (Temporização de Ladrilhos)
 - Leitura e edição de `animdata.mul`.
 - Configuração de quantidade de quadros, intervalo de troca, atraso de início e lista de deslocamento de quadros para itens animados do cenário.
+
+### 18. 📊 GameData (Tabelas e CSVs do Cliente 3D)
+- **Inspetor Completo de `GameData.uop`**: Leitura nativa e descompactação de todas as **79 tabelas de metadados** do Enhanced Client (3D).
+- **Visualizador em Grade (Table View)**: Exibição estruturada com colunas, cabeçalhos e linhas formatadas, com ordenação e filtro em tempo real.
+- **Visualizador de Texto Bruto (Raw View)**: Aba monospaçada para inspecionar e copiar os arquivos CSV/XML originais na íntegra.
+- **Tabelas Chave Catalogadas**:
+  - `legacycontainers.csv`: Coordenadas de drop e bounding boxes exatas de todos os contêineres e mochilas.
+  - `legacy_to_new_items.csv`: Conversão de IDs de itens do cliente clássico 2D para os novos meshes/gráficos 3D.
+  - `body_to_mesh.csv`: Mapeamento de corpos clássicos para modelos `.dds` 3D (ogre, ettin, zombie, gargoyle, etc.).
+  - `recipes.csv`: Tabela completa de receitas de crafting, requerimentos de skill e materiais.
+  - Planilhas de placas de casas (`house sign gumps`), posicionamento de construções, cores de pele de gárgula/elfo e estilos de cabelo.
+- **Exportação Flexível**:
+  - Exportação da tabela selecionada para **CSV** ou **JSON**.
+  - Botão **"Export All 79 Tables..."** para extrair todas as planilhas de uma só vez para qualquer diretório do computador.
 
 ---
 

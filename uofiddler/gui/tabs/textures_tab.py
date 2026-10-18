@@ -4,7 +4,7 @@ Textures Tab: Terrain textures viewer, inspector, and editor with PNG export/imp
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QLineEdit,
-    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox
+    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QComboBox
 )
 from PyQt6.QtCore import Qt, QSize
 from uofiddler.core.textures import TextureManager
@@ -28,19 +28,19 @@ class TexturesTab(QWidget):
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.browser = TileBrowserWidget(self, grid_size=QSize(72, 72), icon_size=QSize(48, 48))
-        valid_ids = [
-            i for i, entry in enumerate(self.tex_mgr._file_index.entries) if entry.is_valid
-        ] if self.tex_mgr._file_index else []
+        # Client / Source selector
+        client_row = QHBoxLayout()
+        client_row.addWidget(QLabel("Client / Source:"))
+        self.combo_client = QComboBox()
+        self.combo_client.addItem("Classic (2D MUL)", "classic")
+        self.combo_client.addItem("Enhanced Legacy (UOP)", "enhanced_legacy")
+        self.combo_client.addItem("Enhanced 3D (UOP)", "enhanced_3d")
+        self.combo_client.currentIndexChanged.connect(self.on_client_changed)
+        client_row.addWidget(self.combo_client)
+        left_layout.addLayout(client_row)
 
-        self.browser.set_data(
-            count=len(valid_ids),
-            ids=valid_ids,
-            get_label=self.get_tex_label,
-            get_image=self.tex_mgr.get_texture,
-            get_tooltip=self.get_tex_tooltip,
-            columns=["ID", "Hex", "Dimensions", "Graphic"],
-        )
+        self.browser = TileBrowserWidget(self, grid_size=QSize(72, 72), icon_size=QSize(48, 48))
+        self.refresh_browser()
         left_layout.addWidget(self.browser)
 
         splitter.addWidget(left_widget)
@@ -80,10 +80,37 @@ class TexturesTab(QWidget):
         main_layout.addWidget(splitter)
 
         self.browser.itemSelected.connect(self.load_tex)
-        if valid_ids:
-            self.select_tex(valid_ids[0])
+        if self.browser.count > 0 and self.browser.ids:
+            self.select_tex(self.browser.ids[0])
+
+    def on_client_changed(self, index: int):
+        mode = self.combo_client.currentData() or "classic"
+        self.tex_mgr.set_client_mode(mode)
+        self.refresh_browser()
+        if self.browser.count > 0:
+            self.select_tex(0)
+        else:
+            self.canvas.set_pil_image(None)
+            self.lbl_id.setText("ID: -")
+            self.lbl_size.setText("Dimensions: -")
+
+    def refresh_browser(self):
+        count = self.tex_mgr.get_count()
+        valid_ids = list(range(count)) if self.tex_mgr.client_mode != "classic" else [
+            i for i in range(count) if self.tex_mgr.is_valid(i)
+        ]
+        self.browser.set_data(
+            count=len(valid_ids),
+            ids=valid_ids,
+            get_label=self.get_tex_label,
+            get_image=self.tex_mgr.get_texture,
+            get_tooltip=self.get_tex_tooltip,
+            columns=["ID", "Hex", "Dimensions", "Graphic"],
+        )
 
     def get_tex_label(self, tex_id: int) -> str:
+        if self.tex_mgr.client_mode in ("enhanced_legacy", "enhanced_3d"):
+            return "DDS"
         if self.tex_mgr._file_index and tex_id < len(self.tex_mgr._file_index.entries):
             entry = self.tex_mgr._file_index.entries[tex_id]
             if entry.is_valid:

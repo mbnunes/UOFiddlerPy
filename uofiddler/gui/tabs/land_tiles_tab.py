@@ -4,11 +4,12 @@ Land Tiles Tab: Terrain tile art viewer, inspector, and editor with export/impor
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QLineEdit,
-    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox
+    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QComboBox
 )
 from PyQt6.QtCore import Qt
 from uofiddler.core.art import ArtManager
 from uofiddler.core.tiledata import TileDataManager
+from uofiddler.core.gamedata import GameDataManager
 from uofiddler.gui.widgets.image_canvas import ImageCanvas
 from uofiddler.gui.widgets.virtual_tile_view import TileBrowserWidget
 
@@ -18,6 +19,7 @@ class LandTilesTab(QWidget):
         super().__init__(parent)
         self.art_mgr = ArtManager.get_instance()
         self.tile_mgr = TileDataManager.get_instance()
+        self.game_data_mgr = GameDataManager.get_instance()
         self.current_tile_id = 0
         self.init_ui()
 
@@ -29,6 +31,17 @@ class LandTilesTab(QWidget):
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Client selector (Classic 2D Diamond vs Enhanced 3D Texture & XML)
+        client_row = QHBoxLayout()
+        client_row.setContentsMargins(4, 4, 4, 4)
+        client_row.addWidget(QLabel("Client:"))
+        self.combo_client = QComboBox()
+        self.combo_client.addItem("Classic (2D Diamond)", "classic")
+        self.combo_client.addItem("Enhanced 3D (Texture & XML)", "enhanced")
+        self.combo_client.currentIndexChanged.connect(self.on_client_changed)
+        client_row.addWidget(self.combo_client)
+        left_layout.addLayout(client_row)
 
         self.browser = TileBrowserWidget(self)
         count = len(self.tile_mgr.land_tiles) if self.tile_mgr.land_tiles else 0x4000
@@ -50,7 +63,7 @@ class LandTilesTab(QWidget):
         self.canvas.setMinimumSize(250, 250)
         right_layout.addWidget(self.canvas, stretch=2)
 
-        # Properties
+        # Properties (TileData)
         prop_box = QGroupBox("Land Tile Properties (TileData)")
         prop_layout = QFormLayout(prop_box)
         self.lbl_id = QLabel("0 (0x0000)")
@@ -63,6 +76,18 @@ class LandTilesTab(QWidget):
         prop_layout.addRow("Flags:", self.lbl_flags)
         prop_layout.addRow("Texture ID:", self.lbl_tex)
         right_layout.addWidget(prop_box)
+
+        # Enhanced Client (3D Terrain XML)
+        ec_box = QGroupBox("Enhanced Client (3D Terrain XML)")
+        ec_layout = QFormLayout(ec_box)
+        self.lbl_ec_terrain_name = QLabel("-")
+        self.lbl_ec_texmap = QLabel("-")
+        self.lbl_ec_flags = QLabel("-")
+
+        ec_layout.addRow("EC Terrain Name:", self.lbl_ec_terrain_name)
+        ec_layout.addRow("EC TexMap ID:", self.lbl_ec_texmap)
+        ec_layout.addRow("EC 3D Flags:", self.lbl_ec_flags)
+        right_layout.addWidget(ec_box)
 
         # Buttons: Export, Replace, Remove
         btn_layout = QHBoxLayout()
@@ -94,6 +119,12 @@ class LandTilesTab(QWidget):
     def get_land_thumb(self, tile_id: int):
         return self.art_mgr.get_land(tile_id)
 
+    def on_client_changed(self):
+        mode = self.combo_client.currentData() or "classic"
+        self.art_mgr.set_client_mode(mode)
+        self.browser.refresh()
+        self.update_display(self.current_tile_id)
+
     def select_tile(self, tile_id: int):
         self.browser.select_id(tile_id)
 
@@ -112,6 +143,18 @@ class LandTilesTab(QWidget):
             self.lbl_name.setText("(none)")
             self.lbl_flags.setText("-")
             self.lbl_tex.setText("-")
+
+        # Update EC Terrain XML
+        terrain_info = self.game_data_mgr.get_legacy_terrain(tile_id)
+        if terrain_info:
+            self.lbl_ec_terrain_name.setText(f"<font color='#81c784'>{terrain_info.name or '-'}</font>")
+            self.lbl_ec_texmap.setText(f"<font color='#64b5f6'>{terrain_info.tex_map} (0x{terrain_info.tex_map:04X})</font>")
+            flags_str = ", ".join(terrain_info.flags) if terrain_info.flags else "none"
+            self.lbl_ec_flags.setText(f"<font color='#ffb74d'>{flags_str}</font>")
+        else:
+            self.lbl_ec_terrain_name.setText("<font color='#888888'>N/A (No EC XML entry)</font>")
+            self.lbl_ec_texmap.setText("<font color='#888888'>-</font>")
+            self.lbl_ec_flags.setText("<font color='#888888'>-</font>")
 
     def on_export(self):
         img = self.art_mgr.get_land(self.current_tile_id)

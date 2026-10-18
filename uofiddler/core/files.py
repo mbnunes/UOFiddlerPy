@@ -17,7 +17,9 @@ class FileManager:
 
     def __init__(self, uo_dir: Optional[str] = None):
         self.uo_dir: Optional[str] = None
+        self.uo_ec_dir: Optional[str] = None
         self._file_cache: Dict[str, str] = {}
+        self._ec_file_cache: Dict[str, str] = {}
         self.high_seas: bool = True
         self.load_settings()
 
@@ -25,6 +27,11 @@ class FileManager:
             self.set_uo_dir(uo_dir)
         elif not self.uo_dir or not os.path.isdir(self.uo_dir):
             self.auto_detect_dir()
+
+        if not self.uo_ec_dir or not os.path.isdir(self.uo_ec_dir):
+            self.auto_detect_ec_dir()
+        else:
+            self._build_ec_file_cache()
 
     @classmethod
     def get_instance(cls) -> 'FileManager':
@@ -38,6 +45,7 @@ class FileManager:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.uo_dir = data.get("uo_dir")
+                    self.uo_ec_dir = data.get("uo_ec_dir")
                     self.high_seas = data.get("high_seas", True)
             except Exception as e:
                 print(f"[FileManager] Failed to load settings: {e}")
@@ -48,6 +56,7 @@ class FileManager:
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump({
                     "uo_dir": self.uo_dir,
+                    "uo_ec_dir": self.uo_ec_dir,
                     "high_seas": self.high_seas
                 }, f, indent=4)
         except Exception as e:
@@ -59,6 +68,26 @@ class FileManager:
         self.uo_dir = os.path.abspath(directory)
         self._build_file_cache()
         self.save_settings()
+
+    def set_uo_ec_dir(self, directory: str):
+        if not os.path.isdir(directory):
+            raise FileNotFoundError(f"Directory not found: {directory}")
+        self.uo_ec_dir = os.path.abspath(directory)
+        self._build_ec_file_cache()
+        self.save_settings()
+
+    def _build_ec_file_cache(self):
+        """Index all files in the UO Enhanced (3D) directory case-insensitively."""
+        self._ec_file_cache.clear()
+        if not self.uo_ec_dir or not os.path.isdir(self.uo_ec_dir):
+            return
+
+        for root, dirs, files in os.walk(self.uo_ec_dir):
+            for file in files:
+                lower = file.lower()
+                full_path = os.path.join(root, file)
+                if lower not in self._ec_file_cache:
+                    self._ec_file_cache[lower] = full_path
 
     def _build_file_cache(self):
         """Index all files in the UO directory case-insensitively."""
@@ -100,6 +129,32 @@ class FileManager:
 
         return None
 
+    def get_ec_file_path(self, filename: str) -> Optional[str]:
+        """
+        Gets the absolute path to a file in the Enhanced Client (3D) directory case-insensitively.
+        E.g. get_ec_file_path("gamedata.uop") finds "GameData.uop".
+        """
+        lower = filename.lower()
+        if lower in self._ec_file_cache:
+            p = self._ec_file_cache[lower]
+            if os.path.exists(p):
+                return p
+
+        # Check directly in uo_ec_dir
+        if self.uo_ec_dir and os.path.isdir(self.uo_ec_dir):
+            target = os.path.join(self.uo_ec_dir, filename)
+            if os.path.exists(target):
+                return target
+
+            # Fallback scan directory
+            for f in os.listdir(self.uo_ec_dir):
+                if f.lower() == lower:
+                    resolved = os.path.join(self.uo_ec_dir, f)
+                    self._ec_file_cache[lower] = resolved
+                    return resolved
+
+        return None
+
     def auto_detect_dir(self) -> Optional[str]:
         """
         Scans common Linux paths for Ultima Online clients.
@@ -126,3 +181,27 @@ class FileManager:
                         return cand
 
         return None
+
+    def auto_detect_ec_dir(self) -> Optional[str]:
+        """
+        Scans common Linux paths for Ultima Online Enhanced (3D) clients.
+        """
+        candidates = [
+            "/opt/hd_jogos/UOEC",
+            str(Path.home() / ".wine" / "drive_c" / "Program Files (x86)" / "Electronic Arts" / "Ultima Online Enhanced"),
+            str(Path.home() / ".wine" / "drive_c" / "Program Files" / "Electronic Arts" / "Ultima Online Enhanced"),
+            str(Path.home() / "UOEC"),
+            str(Path.home() / "Ultima Online Enhanced"),
+        ]
+
+        for cand in candidates:
+            if os.path.isdir(cand):
+                # Verify it looks like a UO EC directory (UOSA.exe, GameData.uop, etc.)
+                for test_file in ["UOSA.exe", "GameData.uop", "Interface.uop", "gumpartLegacyMUL.uop"]:
+                    if any(f.lower() == test_file.lower() for f in os.listdir(cand)):
+                        print(f"[FileManager] Auto-detected UO Enhanced directory: {cand}")
+                        self.set_uo_ec_dir(cand)
+                        return cand
+
+        return None
+

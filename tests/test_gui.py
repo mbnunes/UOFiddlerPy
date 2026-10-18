@@ -26,12 +26,12 @@ class TestGUI(unittest.TestCase):
     def test_main_window_creation(self):
         win = MainWindow()
         self.assertIsNotNone(win)
-        self.assertEqual(win.tab_widget.count(), 17)
+        self.assertEqual(win.tab_widget.count(), 18)
 
         expected_tabs = [
             "Items", "Land Tiles", "TileData", "Gumps", "Hues",
             "Textures", "RadarCol", "Animations", "Cliloc", "Sounds",
-            "Map", "Multis", "Light", "Fonts", "Skills", "Speech", "AnimData"
+            "Map", "Multis", "Light", "Fonts", "Skills", "Speech", "AnimData", "GameData"
         ]
 
         actual_tabs = [win.tab_widget.tabText(i) for i in range(win.tab_widget.count())]
@@ -181,6 +181,126 @@ class TestGUI(unittest.TestCase):
             self.assertGreater(len(tab.frames), 0)
 
         tab.close()
+
+    def test_equipment_linker_and_container_overlay(self):
+        win = MainWindow()
+
+        # 1. Test Items Tab equipment linker
+        items_tab = win.tab_items
+        # Select Robe (0x1F03 = 7939) which has Anim ID 0x01D3 = 467
+        items_tab.update_display(7939)
+        self.assertIsNotNone(items_tab.current_male_gump)
+        self.assertIsNotNone(items_tab.current_female_gump)
+        self.assertGreater(items_tab.current_male_gump, 50000)
+        self.assertGreater(items_tab.current_female_gump, 60000)
+
+        # 2. Test Navigation from Items to Gump
+        win.navigate_to_gump(items_tab.current_male_gump)
+        self.assertEqual(win.tab_widget.currentIndex(), 3)  # Gumps Tab
+
+        # 3. Test Gumps Tab Container Overlay
+        gumps_tab = win.tab_gumps
+        # Select Backpack gump (60)
+        gumps_tab.select_gump(60)
+        self.assertEqual(gumps_tab.current_gump_id, 60)
+        self.assertIn("backpack", gumps_tab.lbl_container.text().lower())
+        self.assertIsNotNone(gumps_tab.canvas._overlay_rect)
+        self.assertEqual(gumps_tab.canvas._overlay_rect.x(), 44.0)
+        self.assertEqual(gumps_tab.canvas._overlay_rect.y(), 65.0)
+        self.assertEqual(gumps_tab.canvas._overlay_rect.width(), 142.0)
+        self.assertEqual(gumps_tab.canvas._overlay_rect.height(), 94.0)
+
+        # 4. Test Toggling overlay checkbox
+        gumps_tab.chk_container.setChecked(False)
+        self.assertIsNone(gumps_tab.canvas._overlay_rect)
+        gumps_tab.chk_container.setChecked(True)
+        self.assertIsNotNone(gumps_tab.canvas._overlay_rect)
+
+        win.close()
+
+    def test_gamedata_tab(self):
+        win = MainWindow()
+        tab = win.tab_gamedata
+        self.assertEqual(tab.list_widget.count(), 79)
+
+        # Load legacycontainers.csv
+        tab.load_table("legacycontainers.csv")
+        self.assertGreater(tab.table_widget.rowCount(), 10)
+        self.assertGreater(tab.table_widget.columnCount(), 4)
+        self.assertIn("legacycontainers.csv", tab.lbl_name.text())
+        self.assertGreater(len(tab.raw_text_view.toPlainText()), 100)
+
+        # Test filter
+        tab.on_filter_changed("recipe")
+        visible_count = sum(1 for i in range(tab.list_widget.count()) if not tab.list_widget.item(i).isHidden())
+        self.assertGreater(visible_count, 0)
+        tab.on_filter_changed("")
+
+        win.close()
+
+    def test_textures_tab_ec(self):
+        win = MainWindow()
+        tab = win.tab_textures
+
+        # Switch to Enhanced Legacy mode (UOP)
+        tab.combo_client.setCurrentIndex(1)
+        self.assertGreater(tab.browser.count, 50000)
+        tab.select_tex(0)
+        self.assertIsNotNone(tab.canvas._pixmap)
+
+        # Switch back to Classic mode
+        tab.combo_client.setCurrentIndex(0)
+        self.assertLess(tab.browser.count, 50000)
+
+        win.close()
+
+    def test_items_tab_ec(self):
+        win = MainWindow()
+        tab = win.tab_items
+
+        # Verify initial classic mode
+        self.assertEqual(tab.combo_client.currentData(), "classic")
+        tab.select_item(2)  # Ankh / item with 3D model in legacy_to_new
+        self.assertIsNotNone(tab.canvas._pixmap)
+        self.assertIn("NewID", tab.lbl_ec_model.text())
+
+        tab.select_item(3821)  # Gold coins (fallback to legacy texture)
+        self.assertIn("Legacy Tile Texture", tab.lbl_ec_model.text())
+
+        # Switch to Enhanced 3D mode
+        tab.combo_client.setCurrentIndex(1)
+        self.assertEqual(tab.combo_client.currentData(), "enhanced")
+        tab.select_item(3821)
+        self.assertIsNotNone(tab.canvas._pixmap)
+
+        # Switch back to Classic mode
+        tab.combo_client.setCurrentIndex(0)
+        self.assertEqual(tab.combo_client.currentData(), "classic")
+
+        win.close()
+
+    def test_land_tiles_tab_ec(self):
+        win = MainWindow()
+        tab = win.tab_land_tiles
+
+        # Verify initial classic mode
+        self.assertEqual(tab.combo_client.currentData(), "classic")
+        tab.select_tile(749)  # dirt
+        self.assertIsNotNone(tab.canvas._pixmap)
+        self.assertIn("dirt", tab.lbl_ec_terrain_name.text())
+        self.assertIn("749", tab.lbl_ec_texmap.text())
+
+        # Switch to Enhanced 3D mode
+        tab.combo_client.setCurrentIndex(1)
+        self.assertEqual(tab.combo_client.currentData(), "enhanced")
+        tab.select_tile(749)
+        self.assertIsNotNone(tab.canvas._pixmap)
+
+        # Switch back to Classic mode
+        tab.combo_client.setCurrentIndex(0)
+        self.assertEqual(tab.combo_client.currentData(), "classic")
+
+        win.close()
 
 
 if __name__ == "__main__":

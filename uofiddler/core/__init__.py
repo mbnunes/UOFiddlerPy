@@ -18,6 +18,7 @@ from uofiddler.core.animations import AnimationsManager, AnimationFrame
 from uofiddler.core.fonts import FontsManager
 from uofiddler.core.maps import MapManager, MapInfo
 from uofiddler.core.defs import DefsManager
+from uofiddler.core.gamedata import GameDataManager, ContainerBounds, EquipConvEntry
 
 __all__ = [
     "FileManager",
@@ -54,4 +55,8 @@ __all__ = [
     "MapManager",
     "MapInfo",
     "DefsManager",
+    "GameDataManager",
+    "ContainerBounds",
+    "EquipConvEntry",
 ]
+

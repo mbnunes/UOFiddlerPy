@@ -18,6 +18,8 @@ class ImageCanvas(QWidget):
         self._pan: QPoint = QPoint(0, 0)
         self._drag_start: Optional[QPoint] = None
         self._show_grid: bool = True
+        self._overlay_rect: Optional[QRectF] = None
+        self._overlay_label: Optional[str] = None
         self.setStyleSheet("background-color: #141418;")
 
     def set_pil_image(self, img: Optional[Image.Image]):
@@ -84,6 +86,42 @@ class ImageCanvas(QWidget):
         # Draw subtle border around image
         painter.setPen(QPen(QColor("#3f51b5"), 1, Qt.PenStyle.DashLine))
         painter.drawRect(target_rect)
+
+        # Draw container bounding box overlay if specified
+        if self._overlay_rect and not self._overlay_rect.isNull():
+            ox = tx + self._overlay_rect.x() * self._zoom
+            oy = ty + self._overlay_rect.y() * self._zoom
+            ow = self._overlay_rect.width() * self._zoom
+            oh = self._overlay_rect.height() * self._zoom
+            o_rect = QRectF(ox, oy, ow, oh)
+
+            # Draw semi-transparent green fill
+            painter.fillRect(o_rect, QColor(76, 175, 80, 60))
+
+            # Draw crisp border
+            painter.setPen(QPen(QColor("#4caf50"), 2, Qt.PenStyle.SolidLine))
+            painter.drawRect(o_rect)
+
+            if self._overlay_label:
+                painter.setPen(QColor("#a5d6a7"))
+                painter.drawText(
+                    o_rect.adjusted(6, 6, -6, -6),
+                    Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft,
+                    self._overlay_label
+                )
+
+    def set_overlay_rect(self, rect: Optional[Tuple[int, int, int, int]] = None, label: Optional[str] = None):
+        """
+        Sets a bounding box overlay in image pixel coordinates: (x, y, width, height).
+        Pass None to clear the overlay.
+        """
+        if rect:
+            self._overlay_rect = QRectF(rect[0], rect[1], rect[2], rect[3])
+            self._overlay_label = label
+        else:
+            self._overlay_rect = None
+            self._overlay_label = None
+        self.update()
 
     def wheelEvent(self, event: QWheelEvent):
         degrees = event.angleDelta().y() / 8.0

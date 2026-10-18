@@ -23,6 +23,7 @@ from uofiddler.core.radar_col import RadarColManager
 from uofiddler.core.multis import MultisManager
 from uofiddler.core.animations import AnimationsManager
 from uofiddler.core.maps import MapManager
+from uofiddler.core.gamedata import GameDataManager
 
 
 class TestCore(unittest.TestCase):
@@ -86,6 +87,21 @@ class TestCore(unittest.TestCase):
         if tex0:
             self.assertIn(tex0.size, [(64, 64), (128, 128)])
 
+    def test_textures_manager_ec(self):
+        tm = TextureManager.get_instance()
+        tm.set_client_mode("enhanced_legacy")
+        self.assertGreater(tm.get_count(), 50000)
+        tex0 = tm.get_texture(0)
+        self.assertIsNotNone(tex0)
+        self.assertEqual(tex0.size, (64, 64))
+
+        tm.set_client_mode("enhanced_3d")
+        self.assertGreater(tm.get_count(), 9000)
+        tex0_3d = tm.get_texture(0)
+        self.assertIsNotNone(tex0_3d)
+
+        tm.set_client_mode("classic")
+
     def test_multis_manager(self):
         mm = MultisManager.get_instance()
         m0 = mm.get_multi(0)
@@ -104,6 +120,45 @@ class TestCore(unittest.TestCase):
         self.assertTrue(len(mp.maps) >= 6)
         img = mp.render_minimap(0, 180, 200, 8, 8)
         self.assertEqual(img.size, (64, 64))
+
+    def test_file_manager_ec(self):
+        fm = FileManager.get_instance()
+        self.assertIsNotNone(fm.uo_ec_dir)
+        self.assertTrue(os.path.isdir(fm.uo_ec_dir))
+        gamedata_path = fm.get_ec_file_path("GameData.uop")
+        self.assertIsNotNone(gamedata_path)
+        self.assertTrue(os.path.exists(gamedata_path))
+
+    def test_gamedata_manager(self):
+        gdm = GameDataManager.get_instance()
+        self.assertTrue(gdm.is_loaded)
+        self.assertTrue(len(gdm.containers) > 0)
+        # Verify backpack coordinates from legacycontainers.csv
+        backpack = gdm.get_container(60)
+        self.assertIsNotNone(backpack)
+        self.assertEqual(backpack.left, 44)
+        self.assertEqual(backpack.top, 65)
+        self.assertEqual(backpack.right, 186)
+        self.assertEqual(backpack.bottom, 159)
+        self.assertEqual(backpack.name, "backpack")
+        self.assertEqual(backpack.width, 142)
+        self.assertEqual(backpack.height, 94)
+
+        # Verify legacy conversion table
+        self.assertTrue(len(gdm.legacy_to_new) > 0)
+
+        # Verify equip gump resolution
+        gump_id = gdm.get_equip_gump(1249, body_type=401, gender=1)
+        self.assertGreater(gump_id, 0)
+
+    def test_gump_manager_enhanced(self):
+        gm = GumpManager.get_instance()
+        gm.set_client_mode("enhanced")
+        self.assertTrue(gm.is_valid(60))
+        gump60 = gm.get_gump(60)
+        self.assertIsNotNone(gump60)
+        self.assertEqual(gump60.size, (230, 204))
+        gm.set_client_mode("classic")
 
 
 if __name__ == "__main__":

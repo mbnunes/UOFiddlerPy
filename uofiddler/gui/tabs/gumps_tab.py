@@ -4,10 +4,11 @@ Gumps Tab: Ultima Online Gump viewer, inspector, and editor with PNG export/impo
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QLabel, QLineEdit,
-    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QListWidget, QListWidgetItem
+    QPushButton, QGroupBox, QFormLayout, QFileDialog, QMessageBox, QListWidget, QListWidgetItem, QComboBox, QCheckBox
 )
 from PyQt6.QtCore import Qt
 from uofiddler.core.gumps import GumpManager
+from uofiddler.core.gamedata import GameDataManager
 from uofiddler.gui.widgets.image_canvas import ImageCanvas
 
 
@@ -15,6 +16,7 @@ class GumpsTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.gump_mgr = GumpManager.get_instance()
+        self.game_data_mgr = GameDataManager.get_instance()
         self.current_gump_id = 0
         self.init_ui()
 
@@ -26,6 +28,16 @@ class GumpsTab(QWidget):
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Client mode selector
+        client_row = QHBoxLayout()
+        client_label = QLabel("Client:")
+        self.combo_client = QComboBox()
+        self.combo_client.addItems(["Classic (2D)", "Enhanced (3D)"])
+        self.combo_client.currentIndexChanged.connect(self.on_client_changed)
+        client_row.addWidget(client_label)
+        client_row.addWidget(self.combo_client)
+        left_layout.addLayout(client_row)
 
         # Search bar
         search_layout = QHBoxLayout()
@@ -61,9 +73,15 @@ class GumpsTab(QWidget):
         form_layout = QFormLayout(prop_box)
         self.lbl_id = QLabel("0 (0x0000)")
         self.lbl_size = QLabel("-")
+        self.lbl_container = QLabel("Not a container")
+        self.chk_container = QCheckBox("Show Container Drop Area Overlay")
+        self.chk_container.setChecked(True)
+        self.chk_container.stateChanged.connect(self.on_toggle_container_overlay)
 
         form_layout.addRow("Gump ID:", self.lbl_id)
         form_layout.addRow("Dimensions:", self.lbl_size)
+        form_layout.addRow("Container:", self.lbl_container)
+        form_layout.addRow("", self.chk_container)
         right_layout.addWidget(prop_box)
 
         # Actions
@@ -87,6 +105,17 @@ class GumpsTab(QWidget):
 
         if self.list_widget.count() > 0:
             self.list_widget.setCurrentRow(0)
+
+    def on_client_changed(self, index: int):
+        mode = "enhanced" if index == 1 else "classic"
+        self.gump_mgr.set_client_mode(mode)
+        self.populate_list()
+        if self.list_widget.count() > 0:
+            self.list_widget.setCurrentRow(0)
+        else:
+            self.canvas.set_pil_image(None)
+            self.lbl_id.setText("ID: -")
+            self.lbl_dims.setText("Dimensions: -")
 
     def populate_list(self):
         self.list_widget.clear()
@@ -118,6 +147,38 @@ class GumpsTab(QWidget):
             self.lbl_size.setText(f"{img.width} x {img.height} px")
         else:
             self.lbl_size.setText("(empty / not found)")
+
+        # Container bounding box inspection
+        container = self.game_data_mgr.get_container(gump_id)
+        if container:
+            self.lbl_container.setText(
+                f"<font color='#4caf50'>✔ {container.name}</font> "
+                f"[{container.width}x{container.height} at ({container.left}, {container.top})]"
+            )
+            if self.chk_container.isChecked() and img:
+                self.canvas.set_overlay_rect(
+                    (container.left, container.top, container.width, container.height),
+                    label=f"Drop Area: {container.name}"
+                )
+            else:
+                self.canvas.set_overlay_rect(None)
+        else:
+            self.lbl_container.setText("<font color='#888888'>Not a container</font>")
+            self.canvas.set_overlay_rect(None)
+
+    def on_toggle_container_overlay(self):
+        self.load_gump(self.current_gump_id)
+
+    def select_gump(self, gump_id: int):
+        """Programmatically select and display a Gump ID."""
+        for row in range(self.list_widget.count()):
+            item = self.list_widget.item(row)
+            if item and item.data(Qt.ItemDataRole.UserRole) == gump_id:
+                self.list_widget.setCurrentRow(row)
+                return
+        # If not in filtered list, load directly
+        if self.gump_mgr.is_valid(gump_id):
+            self.load_gump(gump_id)
 
     def on_search(self):
         text = self.search_input.text().strip()
