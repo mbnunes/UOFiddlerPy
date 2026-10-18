@@ -191,10 +191,14 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About UOFiddlerPy",
-            "<h3>UOFiddlerPy v1.0.0</h3>"
-            "<p>A 100% native Python rewrite of UOFiddler for Linux and any OS.</p>"
-            "<p><b>Zero dotnet or wine headaches.</b> Full support for MUL and UOP formats, "
-            "RLE decoders/encoders, 3000 hues, high seas tiledata, maps, animations, and multis.</p>"
+            "<h3>🗡️ UOFiddlerPy v1.0.0</h3>"
+            "<p>A 100% native Python rewrite of UOFiddler for Linux and cross-platform systems.</p>"
+            "<p><b>Zero .NET or Wine headaches.</b> Complete support for MUL and UOP formats, "
+            "RLE decoders/encoders, 3,000 hues, High Seas tiledata, maps with LOD, animations, and multis.</p>"
+            "<hr/>"
+            "<p><b>Author:</b> Mauricio Nunes + Gemini</p>"
+            "<p><b>GitHub:</b> <a href=\"https://github.com/mbnunes/UOFiddlerPy\" style=\"color: #64b5f6;\">"
+            "https://github.com/mbnunes/UOFiddlerPy</a></p>"
             "<p>Built with PyQt6 and Pillow.</p>"
         )
 

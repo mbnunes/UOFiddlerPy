@@ -1,6 +1,8 @@
 # UOFiddlerPy 🗡️
 
-> 🌐 **Language / Idioma**: **English** | [Português (README_pt-br.md)](README_pt-br.md)
+> 🌐 **Language / Idioma**: **English** | [Português (README_pt-br.md)](README_pt-br.md)  
+> 👤 **Author**: Mauricio Nunes + Gemini  
+> 🔗 **GitHub**: [https://github.com/mbnunes/UOFiddlerPy](https://github.com/mbnunes/UOFiddlerPy)
 
 **UOFiddlerPy** is a complete, native, high-performance **Python 3** recreation of the classic **UOFiddler** for Ultima Online. It is designed to run smoothly, stably, and elegantly on **any Linux distribution** (Ubuntu, Debian, Fedora, Arch Linux, openSUSE, etc.) and other operating systems, completely eliminating any dependency on the **.NET runtime**, **Mono**, or **Wine**.
 
@@ -312,6 +314,13 @@ UOFiddlerPy/
             ├── animdata_tab.py
             └── settings_dialog.py
 ```
+
+---
+
+## 👤 Author & Acknowledgments
+
+- **Author**: Mauricio Nunes + Gemini
+- **GitHub Repository**: [https://github.com/mbnunes/UOFiddlerPy](https://github.com/mbnunes/UOFiddlerPy)
 
 ---
 

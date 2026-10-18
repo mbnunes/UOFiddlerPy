@@ -37,6 +37,8 @@ def main():
         fm.set_uo_dir(args.dir)
 
     print(f"=== UOFiddlerPy CLI ===")
+    print(f"Author: Mauricio Nunes + Gemini")
+    print(f"GitHub: https://github.com/mbnunes/UOFiddlerPy")
     print(f"Active UO Directory: {fm.uo_dir}")
 
     if args.info:

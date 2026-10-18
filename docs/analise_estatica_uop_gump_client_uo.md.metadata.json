@@ -1,0 +1,5 @@
+{
+  "summary":  "Documentação técnica aprofundada da análise estática reversa do client.exe de Ultima Online (v7.0.117.1). Cobre a leitura em chunks do formato UOP (MYP v4/v5), tabelas de blocos, hashing Bob Jenkins lookup3, descompressão zlib, e o pipeline completo de resolução de Item ID para Gump ID com engenharia reversa das regras de tileart.uop (AppearanceFilterByOwnerGender, AppearanceFilterByOwnerBodyType), Equipconv.def, gump.def e offsets de gênero.",
+  "updatedAt":  "2026-10-18T02:13:33.996399053Z",
+  "userFacing":  true
+}
