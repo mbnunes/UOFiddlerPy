@@ -28,9 +28,17 @@ class Hue:
         """
         Applies this hue to a PIL RGBA image.
         If only_gray is True, only pixels where R == G == B (partial hue) are tinted.
+        Uses native C accelerator when available, falling back to pure Python.
         """
         if not self.colors or len(self.colors) < 32:
             return img
+
+        try:
+            from uofiddler.native import HAS_NATIVE_CORE, native_apply_hue
+            if HAS_NATIVE_CORE:
+                return native_apply_hue(img, self.colors, only_gray=only_gray)
+        except Exception:
+            pass
 
         out = img.copy().convert("RGBA")
         pixels = out.load()

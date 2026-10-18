@@ -26,9 +26,12 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 
 ---
 
-## 📑 Comprehensive Overview of all 17 Tabs
+## 📑 Comprehensive Overview of all 18 Tabs
 
 ### 1. ⚔️ Items (Statics)
+- **Dual-Client Engine Switcher**: Toggle seamlessly between **Classic (2D Art)** and **Enhanced 3D (UOP)**.
+- **Enhanced Client DDS Textures**: Direct decoding of `LegacyTexture.uop` high-fidelity Direct3D DDS textures with alpha channel.
+- **EC 3D Model Inspector**: Live resolution of classic item IDs to new 3D model replacements (`legacy_to_new_items.csv` `NewID` and `SubType`) or fallback indicator.
 - **Grid (Default) & List Modes**: Switch between a visual icon grid (`⊞ Grid`) with hexadecimal labels and a detailed table view (`☰ List`).
 - **Virtualized Navigation**: Instant access to all 65,536 static item IDs at 60 FPS with zero memory freeze.
 - **Fast Search**: Search by decimal ID, hexadecimal (`0x0EED`), or item name across both view modes.
@@ -43,6 +46,9 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 - **Operations**: Export artwork to PNG/BMP, replace graphics with external images, and remove entries.
 
 ### 2. 🌿 Land Tiles (Terrain)
+- **Dual-Client Engine Switcher**: Toggle on the fly between **Classic (2D Diamond)** and **Enhanced 3D (Texture & XML)**.
+- **Enhanced Client 3D Terrain & Textures**: Displays the actual surface texture mapped by the 3D GPU engine (`texMap` in `Texture.uop` / `Texmaps.mul`).
+- **3D Terrain XML Inspector**: Full metadata inspection from `LegacyTerrain.uop` showing EC terrain name (`dirt`, `snow`, `brick`, etc.), `texMap` ID, and physical 3D flags (`impassable`, `wet`, `surface`).
 - **Grid (Default) & List Modes**: Fluid switching between isometric diamond grids and detailed technical tables.
 - **44x44 Rhombus Geometry**: Exact decoding of the classic isometric 16-bit RGB 555 terrain diamond format.
 - **Navigation & Filtering**: Filter all 16,384 land tiles by ID or name.
@@ -171,10 +177,17 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 
 ## 🛠️ Core Technologies & Algorithms
 
+- **⚡ Native C99 High-Performance Acceleration Engine (`uofiddler/native/`)**:
+  - Direct RLE static decompression writing directly into 32-bit RGBA memory buffers (**~58x faster** than pure Python).
+  - In-place palette transformation for Hues (**~75x faster**).
+  - Isometric 44x44 terrain diamond rasterizer (**~48x faster**).
+  - Bob Jenkins `lookup3` 64-bit hashing and Mythic Move-To-Front / frequency table decompressor in native C.
+  - **Zero External Dependencies & Auto-Compilation**: Written in strictly compliant ANSI C99; automatically compiles into a shared library (`libuo_core.so` / `uo_core.dll` / `libuo_core.dylib`) on first run using `gcc`, `clang`, or MSVC.
+  - **Graceful Fallback**: If no C compiler is present on the host system, UOFiddlerPy falls back transparently to its pure Python implementation without errors.
 - **Bob Jenkins lookup3 (hashlittle2)**: Exact 64-bit hash algorithm used by `.uop` Mythic packages for constant-time entry lookups.
 - **Adler32 Checksum**: Data integrity verification inside UOP entry tables.
 - **Zlib & Mythic Decompression**: `MoveToFront` algorithm combined with frequency table decoding for modern compressed archives.
-- **ARGB1555 Color Conversion**: Precomputed lookup tables converting 5-bit (0..31) and 8-bit (0..255) color channels for maximum execution speed in pure Python.
+- **ARGB1555 Color Conversion**: Precomputed lookup tables converting 5-bit (0..31) and 8-bit (0..255) color channels for maximum execution speed.
 - **RLE Decoders & Encoders**: Bidirectional Run-Length Encoding stream processing for static items and gumps.
 
 ---
@@ -185,6 +198,7 @@ Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono 
 - **Python 3.10 or higher**
 - **PyQt6** (or PyQt5)
 - **Pillow** (PIL)
+- *(Optional)* GCC, Clang, or MSVC compiler for native C99 acceleration (automatically detected).
 
 ### Installing System Dependencies
 
@@ -193,17 +207,17 @@ On your Linux distribution, install packages via the system package manager or v
 **Ubuntu / Debian:**
 ```bash
 sudo apt update
-sudo apt install python3 python3-pyqt6 python3-pil
+sudo apt install python3 python3-pyqt6 python3-pil build-essential
 ```
 
 **Arch Linux / Manjaro:**
 ```bash
-sudo pacman -S python python-pyqt6 python-pillow
+sudo pacman -S python python-pyqt6 python-pillow base-devel
 ```
 
 **Fedora:**
 ```bash
-sudo dnf install python3 python3-pyqt6 python3-pillow
+sudo dnf install python3 python3-pyqt6 python3-pillow gcc
 ```
 
 **Via pip (Virtual Environment or User):**
@@ -258,16 +272,19 @@ UOFiddlerPy includes a powerful CLI utility (`cli.py`) for headless inspections,
 
 ## 🧪 Automated Testing
 
-The project includes an automated test suite verifying both the binary parsing engine and the PyQt6 GUI in offscreen (headless) mode:
+The project includes an automated test suite of **32 comprehensive unit tests** verifying the binary parsing engine, 100% pixel-parity between C and Python implementations, and the PyQt6 GUI in offscreen (headless) mode:
 
 ```bash
 # Run core file parser tests (Art, TileData, Hues, Gumps, Multis, Maps, Animations)
 python3 -m unittest tests/test_core.py
 
+# Run native C99 accelerator tests (validating pixel parity & benchmarks against pure Python)
+python3 -m unittest tests/test_native.py
+
 # Run PyQt6 GUI tests (in offscreen mode)
 python3 -m unittest tests/test_gui.py
 
-# Run all tests together
+# Run all 32 tests together
 python3 -m unittest discover tests
 ```
 
@@ -286,17 +303,22 @@ UOFiddlerPy/
 ├── Animationlist.xml           # XML creature and equipment catalog
 ├── tests/
 │   ├── test_core.py            # Core engine unit tests
+│   ├── test_native.py          # Native C99 pixel-parity & performance tests
 │   └── test_gui.py             # Headless PyQt6 GUI unit tests
 └── uofiddler/
-    ├── core/                   # Pure Python UO binary engine (GUI-independent)
+    ├── native/                 # High-performance C99 acceleration engine
+    │   ├── __init__.py         # ctypes loader & auto-compiler with Python fallback
+    │   ├── uo_core.h           # Native C99 declarations
+    │   └── uo_core.c           # High-speed RLE, land, hue, lookup3 & mythic routines
+    ├── core/                   # Binary UO engine (GUI-independent)
     │   ├── files.py            # Path detection & case-insensitive file resolution
     │   ├── file_index.py       # File indexing (.idx, .mul, and Mythic .uop)
     │   ├── hash_utils.py       # Bob Jenkins lookup3 & Adler32 implementations
     │   ├── mythic.py           # Mythic Move-To-Front decompressor
     │   ├── colors.py           # 16-bit RGB 555 / 32-bit RGBA color conversion
-    │   ├── art.py              # Item & land tile encoder/decoder
+    │   ├── art.py              # Item & land tile encoder/decoder (C-accelerated)
     │   ├── tiledata.py         # Classic & High Seas tiledata parser & writer
-    │   ├── hues.py             # 3,000 hues palette engine
+    │   ├── hues.py             # 3,000 hues palette engine (C-accelerated)
     │   ├── gumps.py            # Gump image decoder & encoder
     │   ├── textures.py         # 64x64 and 128x128 land texture decoder
     │   ├── radar_col.py        # Minimap color reader & auto-average calculator
@@ -309,6 +331,7 @@ UOFiddlerPy/
     │   ├── multis.py           # 2.5D building components & isometric projector
     │   ├── animations.py       # Animation frames & directions (MUL + UOP)
     │   ├── maps.py             # Facets, 8x8 terrain blocks, statics & column I/O
+    │   ├── gamedata.py         # GameData.uop parser (79 tables & legacy terrain XML)
     │   └── defs.py             # Parsers for bodyconv.def, body.def, mobtypes.txt & Animationlist.xml
     └── gui/                    # Modern PyQt6 user interface
         ├── app.py              # Main window & tab coordinator with Lazy Loading
@@ -320,7 +343,7 @@ UOFiddlerPy/
         │   ├── color_bar.py    # 32-color Hue palette bar
         │   ├── virtual_tile_view.py # Virtualized Grid / List browser (60 FPS)
         │   └── interactive_map_view.py # Google Maps-style viewer with LOD & LRU
-        └── tabs/               # All 17 tabs implemented
+        └── tabs/               # All 18 tabs implemented
             ├── items_tab.py
             ├── land_tiles_tab.py
             ├── tiledata_tab.py
@@ -338,6 +361,7 @@ UOFiddlerPy/
             ├── skills_tab.py
             ├── speech_tab.py
             ├── animdata_tab.py
+            ├── gamedata_tab.py
             └── settings_dialog.py
 ```
 

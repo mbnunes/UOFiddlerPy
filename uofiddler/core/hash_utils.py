@@ -10,7 +10,15 @@ def hash_file_name(s: str) -> int:
     """
     Calculates a UOP entry 64-bit hash from its entry path name.
     Matches Bob Jenkins' lookup3 (hashlittle2 variant) used by the Ultima Online client.
+    Uses native C accelerator when available, falling back to pure Python.
     """
+    try:
+        from uofiddler.native import HAS_NATIVE_CORE, native_hash_file_name
+        if HAS_NATIVE_CORE:
+            return native_hash_file_name(s)
+    except Exception:
+        pass
+
     length = len(s)
     a = b = c = (length + 0xDEADBEEF) & 0xFFFFFFFF
     i = 0

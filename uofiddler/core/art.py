@@ -267,7 +267,17 @@ class ArtManager:
     def _decode_land(data: bytes) -> Optional[Image.Image]:
         """
         Decodes a 44x44 diamond land tile from 2048 bytes of 16-bit RGB555 words.
+        Uses native C accelerator when available, falling back to pure Python.
         """
+        try:
+            from uofiddler.native import HAS_NATIVE_CORE, native_decode_land
+            if HAS_NATIVE_CORE:
+                res = native_decode_land(data)
+                if res is not None:
+                    return res
+        except Exception:
+            pass
+
         words = struct.unpack(f"<{len(data) // 2}H", data[:2048])
         img = Image.new("RGBA", (44, 44), (0, 0, 0, 0))
         pixels = img.load()
@@ -302,7 +312,17 @@ class ArtManager:
     def _decode_static(data: bytes) -> Optional[Image.Image]:
         """
         Decodes an RLE-encoded static item into a PIL Image.
+        Uses native C accelerator when available, falling back to pure Python.
         """
+        try:
+            from uofiddler.native import HAS_NATIVE_CORE, native_decode_static
+            if HAS_NATIVE_CORE:
+                res = native_decode_static(data)
+                if res is not None:
+                    return res
+        except Exception:
+            pass
+
         dummy, width, height = struct.unpack_from("<IHH", data, 0)
         if width <= 0 or height <= 0 or width > 1024 or height > 1024:
             return None

@@ -15,6 +15,15 @@ class MythicDecompress:
         if len(buffer) < 4:
             return b""
 
+        try:
+            from uofiddler.native import HAS_NATIVE_CORE, native_decompress_mythic
+            if HAS_NATIVE_CORE:
+                res = native_decompress_mythic(buffer)
+                if res is not None:
+                    return res
+        except Exception:
+            pass
+
         raw_len = struct.unpack_from("<I", buffer, 0)[0]
         data_len = raw_len ^ cls.HEADER_XOR_KEY
 
