@@ -1,164 +1,166 @@
 # UOFiddlerPy 🗡️
 
-**UOFiddlerPy** é uma recriação completa, nativa e de alta performance em **Python 3** do clássico **UOFiddler** para Ultima Online. Ele foi concebido para rodar de forma suave, estável e elegante em **qualquer distribuição Linux** (Ubuntu, Debian, Fedora, Arch, openSUSE, etc.) e outros sistemas operacionais, eliminando completamente qualquer dependência do **.NET runtime**, **Mono** ou **Wine**.
+> 🌐 **Language / Idioma**: **English** | [Português (README_pt-br.md)](README_pt-br.md)
+
+**UOFiddlerPy** is a complete, native, high-performance **Python 3** recreation of the classic **UOFiddler** for Ultima Online. It is designed to run smoothly, stably, and elegantly on **any Linux distribution** (Ubuntu, Debian, Fedora, Arch Linux, openSUSE, etc.) and other operating systems, completely eliminating any dependency on the **.NET runtime**, **Mono**, or **Wine**.
 
 ---
 
-## 💡 Por que o UOFiddlerPy foi criado?
+## 💡 Why was UOFiddlerPy created?
 
-Usar a versão original em C#/.NET no Linux através de Wine ou do Mono frequentemente resulta em:
-- Falhas de renderização, travamentos de fontes e vazamentos de memória (GDI+ / WinForms).
-- Incompatibilidade de caminhos devido ao sistema de arquivos do Linux (*ext4, btrfs, xfs*) ser sensível a maiúsculas e minúsculas (*case-sensitive*), enquanto os clientes de Ultima Online misturam extensões e nomes (`Art.mul`, `artidx.mul`, `ARTLegacyMUL.uop`).
-- Complicações na configuração de prefixes do Wine e dependências pesadas do .NET Desktop Runtime.
+Running the original C#/.NET version of UOFiddler on Linux through Wine or Mono frequently leads to:
+- Graphical glitches, font rendering crashes, and memory leaks (GDI+ / WinForms limitations).
+- Path resolution errors caused by Linux case-sensitive filesystems (*ext4, btrfs, xfs*), whereas Ultima Online clients mix case arbitrarily (`Art.mul`, `artidx.mul`, `ARTLegacyMUL.uop`).
+- Cumbersome Wine prefix management and heavyweight .NET Desktop Runtime dependencies.
 
-O **UOFiddlerPy** resolve tudo isso:
-1. **100% Nativo em Python 3 + PyQt6**: Usa as bibliotecas nativas do sistema com renderização acelerada.
-2. **Resolução de Arquivos Case-Insensitive**: O `FileManager` indexa e localiza os arquivos do cliente independentemente de estarem em maiúsculas ou minúsculas.
-3. **Auto-Detecção Inteligente**: Encontra automaticamente instalações existentes de Ultima Online (inclusive em `/opt/hd_jogos/`, `~/.wine/`, Lutris, diretório atual e pastas de usuário).
-4. **Performance 60 FPS com Virtualização**: Navegação ultra rápida em tabelas com mais de **65.536 itens** e **16.384 terrenos** utilizando o padrão *Model-View* sob demanda sem sobrecarregar a memória RAM.
-5. **Tema Escuro Moderno (Dark Theme)**: Interface gráfica limpa, estilizada e com alto contraste, pronta para uso prolongado.
-6. **Áudio Nativo sem Servidor Windows**: Reprodução direta de arquivos de som através das interfaces de áudio padrão do Linux (`PipeWire`, `PulseAudio`, `ALSA`).
-7. **Arquitetura Híbrida (Splash Screen + Lazy Loading)**: Splash screen escura e veloz no startup com barra de progresso em tempo real (~1s), combinada com carregamento sob demanda (*Lazy Loading*) com indicador de progresso na primeira vez que cada aba é aberta, mantendo o consumo de memória ultrabaixo e o app sempre ágil.
+**UOFiddlerPy** solves all of these issues:
+1. **100% Native Python 3 + PyQt6**: Uses system-native libraries with hardware-accelerated rendering.
+2. **Case-Insensitive File Resolution**: `FileManager` indexes and locates client files regardless of casing.
+3. **Smart Auto-Detection**: Automatically detects existing Ultima Online client installations across Linux (including `/opt/hd_jogos/`, `~/.wine/`, Lutris, Steam, current directory, and user folders).
+4. **60 FPS Performance via Virtualization**: Instantaneous navigation across tables with **65,536 items** and **16,384 land tiles** utilizing on-demand Model-View architecture without memory bloat.
+5. **Modern Dark Theme**: Clean, high-contrast user interface tailored for long editing sessions.
+6. **Native Audio without Windows Drivers**: Direct sound playback using standard Linux audio servers (`PipeWire`, `PulseAudio`, `ALSA`).
+7. **Hybrid Startup Architecture (Splash Screen + Lazy Loading)**: Fast, dark splash screen at launch with real-time progress steps (~1s), paired with on-demand tab loading (*Lazy Loading*) featuring animated loading indicators on first access, keeping memory footprint low and response times instantaneous.
 
 ---
 
-## 📑 Detalhamento Completo das 17 Abas
+## 📑 Comprehensive Overview of all 17 Tabs
 
 ### 1. ⚔️ Items (Statics)
-- **Visualização em Grid (Padrão) e Lista**: Navegação em grade de miniaturas (`⊞ Grid`) com rótulos hexadecimais ou visualização detalhada em tabela (`☰ List`).
-- **Navegação Virtualizada**: Acesso instantâneo a todos os 65.536 IDs de itens estáticos a 60 FPS sem congelamento de memória.
-- **Busca Rápida**: Filtre por ID em decimal, hexadecimal (`0x0EED`) ou pelo nome do item em ambos os modos.
-- **Canvas Interativo**: Suporte completo a zoom com a roda do mouse, arrasto (pan) e fundo quadriculado de transparência.
-- **Testador de Hues**: Selecione e visualize qualquer uma das 3.000 matizes aplicadas diretamente sobre o item (incluindo tratamento de itens com flag `PartialHue`).
-- **Inspetor de TileData**: Visualize nome, flags, peso, camada/qualidade, altura e animação associada.
-- **Operações**: Exportação de imagens para PNG/BMP, substituição de arte por imagem externa e remoção.
+- **Grid (Default) & List Modes**: Switch between a visual icon grid (`⊞ Grid`) with hexadecimal labels and a detailed table view (`☰ List`).
+- **Virtualized Navigation**: Instant access to all 65,536 static item IDs at 60 FPS with zero memory freeze.
+- **Fast Search**: Search by decimal ID, hexadecimal (`0x0EED`), or item name across both view modes.
+- **Interactive Canvas**: Full mouse wheel zoom, click-and-drag pan, and checkerboard transparency background.
+- **Hue Tester**: Preview any of the 3,000 hues applied directly to the item (with proper `PartialHue` flag handling).
+- **TileData Inspector**: View name, flags, weight, layer/quality, height, and associated animation ID.
+- **Operations**: Export artwork to PNG/BMP, replace graphics with external images, and remove entries.
 
-### 2. 🌿 Land Tiles (Terrenos)
-- **Visualização em Grid (Padrão) e Lista**: Alternância fluida entre grade de diamantes isométricos e tabela detalhada.
-- **Geometria 44x44 Losango**: Decodificação exata do formato isométrico clássico de terrenos em 16-bit RGB 555.
-- **Navegação e Busca**: Filtro de todos os 16.384 terrenos por ID ou nome.
-- **Propriedades**: Exibição das flags de terreno (Impassable, Surface, Bridge, Wet, etc.) e Texture ID.
-- **Exportação e Substituição**: Importe novas texturas PNG/BMP mantendo o padrão isométrico do jogo.
+### 2. 🌿 Land Tiles (Terrain)
+- **Grid (Default) & List Modes**: Fluid switching between isometric diamond grids and detailed technical tables.
+- **44x44 Rhombus Geometry**: Exact decoding of the classic isometric 16-bit RGB 555 terrain diamond format.
+- **Navigation & Filtering**: Filter all 16,384 land tiles by ID or name.
+- **Tile Properties**: Display terrain flags (`Impassable`, `Surface`, `Bridge`, `Wet`, etc.) and Texture ID.
+- **Export & Replace**: Import external PNG/BMP textures while preserving standard client geometry.
 
 ### 3. 📋 TileData
-- **Visualização em Grid (Padrão) e Lista**: Escolha entre grade gráfica de miniaturas ou tabela com dados técnicos completos.
-- **Editor Completo de Flags**: Suporte para o padrão clássico (32-bit flags) e o formato moderno **High Seas (64-bit flags)**.
-- **Alternância de Modos**: Edição individualizada para `ItemData` e `LandData`.
-- **Checkboxes para Todas as Flags**:
+- **Grid (Default) & List Modes**: Choose between visual thumbnail grids and complete technical attribute tables.
+- **Full Flags Editor**: Dual format support for classic clients (32-bit flags) and modern **High Seas clients (64-bit flags)**.
+- **Dual Section Toggle**: Seamless switching between `ItemData` and `LandData`.
+- **Complete Checkboxes for All Flags**:
   - `Background`, `Weapon`, `Transparent`, `Translucent`, `Wall`, `Damaging`, `Impassable`, `Wet`, `Surface`, `Bridge`, `Generic`, `Window`, `NoShoot`, `PrefixA`, `PrefixAn`, `Internal`, `Foliage`, `PartialHue`, `Map`, `Container`, `Wearable`, `LightSource`, `Animated`, `NoDiagonal`, `Armor`, `Roof`, `Door`, `StairBack`, `StairRight`, `AlphaBlend`, `UseNewArt`, `ArtUsed`, `NoHouse`, `NoDraw`, `HoverOver`.
-- **Edição de Campos**: Nome (até 20 caracteres), peso, camada/qualidade, altura, ID de animação, matiz e textura de terreno.
-- **Salvamento Direto**: Gravação estruturada e compatível diretamente em `tiledata.mul`.
+- **Field Editing**: Name (up to 20 characters), weight, layer/quality, height, animation ID, hue, and terrain texture.
+- **Direct Save**: Clean, structured saving directly into `tiledata.mul`.
 
 ### 4. 🖼️ Gumps
-- **Suporte Duplo**: Lê tanto o formato clássico `gumpart.mul` / `gumpidx.mul` quanto os pacotes Mythic modernos `gumpartLegacyMUL.uop`.
-- **Descompressão Completa**: Implementação de pipeline duplo (Zlib + descompressor de blocos Mythic).
-- **Canvas com Zoom**: Visualização de janelas de interface grandes (como menus de 640x480) ou pequenos botões e ícones.
-- **Exportação e Importação**: Salve gumps em PNG transparente ou importe novas artes.
+- **Dual Format Support**: Reads classic `gumpart.mul` / `gumpidx.mul` and modern Mythic `gumpartLegacyMUL.uop` packages.
+- **Full Decompression Pipeline**: Transparent dual decompression (Zlib + Mythic Move-to-Front block decompressor).
+- **Interactive Zoom Canvas**: Inspect large UI windows (e.g., 640x480 book menus) or small buttons and icons.
+- **Export & Import**: Export gumps to transparent PNG or import custom UI assets.
 
 ### 5. 🎨 Hues
-- **Visualização em Grid (Padrão) com Amostra de Cor**: Em modo Grid, cada célula exibe um quadrado preenchido com a cor representativa da matiz (tom central da paleta) com seu ID numérico.
-- **Modo Lista Alternativo**: Tabela com ID, código hexadecimal, nome e amostra da cor.
-- **3.000 Matizes Carregadas**: 375 grupos com 8 matizes cada, exatamente como em `hues.mul`.
-- **Barra de Paleta com 32 Cores**: Exibição gráfica e clicável de todos os 32 tons que formam a escala do hue.
-- **Seletor de Cores (Color Picker)**: Altere qualquer uma das 32 cores individualmente através do seletor nativo.
-- **Testador ao Vivo**: Campo para escolher qualquer item do jogo e testar o efeito da tintura em tempo real.
-- **Edição de Nomes e Gravação**: Renomeie qualquer matiz e salve as alterações em `hues.mul`.
+- **Grid Mode (Default) with Color Swatches**: In Grid mode, each cell displays a solid color square sampled from the hue's mid-tone palette, labeled with its numeric ID.
+- **List Mode**: Table view displaying ID, hexadecimal code, name, and color sample.
+- **3,000 Loaded Hues**: Full 375 groups of 8 hues each, mirroring `hues.mul`.
+- **32-Color Palette Bar**: Interactive, clickable visual representation of all 32 shades in the hue scale.
+- **Color Picker**: Modify any of the 32 individual color shades using the native system color dialog.
+- **Live Re-Hue Preview**: Test the tint effect on any game item in real-time.
+- **Name Editing & Saving**: Rename hues and save alterations back into `hues.mul`.
 
 ### 6. 🧱 Textures
-- **Visualização em Grid (Padrão) e Lista**: Navegação visual rápida por miniaturas de texturas ou tabela com dimensões exatas (64x64 ou 128x128).
-- **Texturas de Terreno**: Suporte para tamanhos padrão 64x64 (8.192 bytes) e alta resolução 128x128 (32.768 bytes).
-- **Conversão de Cores**: Decodificação precisa de 16-bit RGB 555 para RGBA de 32-bit.
-- **Importação e Exportação**: Extraia texturas para edição no Photoshop/GIMP ou importe arquivos PNG para o cliente.
+- **Grid (Default) & List Modes**: Fast visual thumbnail navigation or detailed table with exact dimensions (64x64 or 128x128).
+- **Terrain Textures**: Full support for standard 64x64 (8,192 bytes) and high-resolution 128x128 (32,768 bytes) formats.
+- **Accurate Color Conversion**: Precise 16-bit RGB 555 to 32-bit RGBA decoding.
+- **Import & Export**: Extract textures for Photoshop/GIMP editing or import new PNG files.
 
-### 7. 🛰️ RadarCol (Cores de Radar/Minimapa)
-- **Visualização em Grid (Padrão) e Lista**: Exibição em grade com miniatura da arte do item/terreno acompanhada do indicador da cor de radar no canto (ou amostra sólida da cor).
-- **Tabela Completa de Cores**: Mapeamento de cor em 16 bits para cada terreno (0x0000..0x3FFF) e item estático (0x4000..0x13FFF).
-- **Gerador Automático de Cores**: Botão inteligente que calcula a cor média representativa do item/terreno (desconsiderando pixels transparentes) e preenche a cor do radar automaticamente!
-- **Seletor de Cores e Salvamento**: Ajuste fino com color picker e gravação em `radarcol.mul`.
+### 7. 🛰️ RadarCol (Minimap Colors)
+- **Grid (Default) & List Modes**: Grid displays item/terrain artwork with a radar color indicator badge in the corner (or solid color swatch).
+- **Full Color Table**: 16-bit color mapping for every land tile (0x0000..0x3FFF) and static item (0x4000..0x13FFF).
+- **Smart Auto Color Generator**: Calculates the average representative color of any item or land tile (skipping transparent pixels) and fills the radar color automatically with one click!
+- **Color Picker & Saving**: Fine-tune colors and save changes directly into `radarcol.mul`.
 
-### 8. 🐉 Animations (Criaturas, Personagens e Equipamentos)
-- **Mais de 1.320 Corpos Suportados**: Catálogo completo integrando `Animationlist.xml` e `mobtypes.txt` com nomes reais e categorias (Monstros, Animais, Criaturas Marinhas, Humanos e Equipamentos).
-- **Suporte Nativo a UOP Moderno**: Decodificação completa de pacotes `AnimationFrame1.uop` até `AnimationFrame6.uop` com hashes Jenkins `lookup3` de 64 bits (incluindo todas as criaturas modernas de Stygian Abyss, Time of Legends e High Seas como Gargoyles, Abyssal Infernals, etc.).
-- **Tabela de Substituições de Sequência**: Leitura automática de `AnimationSequence.uop` para resolução de apelidos (*aliases*) e mapeamento de grupos de ações.
-- **Suporte Multi-Arquivo Clássico**: Lê `anim.mul` através de `anim6.mul` com conversão de corpos via `bodyconv.def` e `body.def`.
-- **Filtro por Categorias e Busca Instantânea**: Pesquise criaturas por nome ou ID numérico/hexadecimal com atualização em tempo real.
-- **Detecção Inteligente de Ações**: O menu de ações adapta-se ao tipo de corpo (Monstro, Marinho, Animal ou Humano) com indicador visual (`✓`) de quais ações possuem quadros reais disponíveis.
-- **Reprodutor Interativo**: Play, Pause, Próximo Quadro, Anterior, slider de FPS (2 a 30 fps) e seletor das 8 direções com espelhamento automático.
+### 8. 🐉 Animations (Creatures, Characters & Equipment)
+- **Over 1,320 Bodies Cataloged**: Comprehensive body catalog integrating `Animationlist.xml` and `mobtypes.txt` with real names and categories (Monsters, Animals, Sea Creatures, Humans, and Equipment).
+- **Native Modern UOP Support**: Full decoding of packages `AnimationFrame1.uop` through `AnimationFrame6.uop` using 64-bit Jenkins `lookup3` hashes (including modern Stygian Abyss, Time of Legends, and High Seas creatures such as Gargoyles, Abyssal Infernals, etc. — over 10,980 animation entries decoded).
+- **Animation Sequence Aliasing**: Automatically parses `AnimationSequence.uop` for action alias replacement and group mapping.
+- **Classic Multi-File Support**: Reads `anim.mul` through `anim6.mul` with body translation via `bodyconv.def` and `body.def`.
+- **Category Filter & Real-Time Search**: Search creatures by name or ID (decimal or hexadecimal) with instantaneous filtering.
+- **Smart Action Detection**: Action dropdown dynamically adapts to the body's type (Monster, Sea, Animal, or Human) with checkmark indicators (`✓`) highlighting actions with available frames.
+- **Interactive Player**: Play, Pause, Next Frame, Previous Frame, FPS speed slider (2 to 30 fps), and 8-direction selector with automatic mirroring.
 
-### 9. 🌐 Cliloc (Localização e Textos)
-- **Busca Ultrarrápida**: Pesquise instantaneamente por número do ID ou por qualquer termo contido no texto.
-- **Editor Integrado**: Modifique frases, avisos do sistema ou nomes de magias.
-- **Criação e Remoção**: Adicione novas linhas de texto ou remova entradas obsoletas.
-- **Salvamento**: Gravação compatível em arquivos `cliloc.*` (ex: `cliloc.enu`).
+### 9. 🌐 Cliloc (Localization & Text)
+- **Ultra-Fast Search**: Instant search by ID number or any substring contained in localized strings.
+- **Integrated Editor**: Edit system messages, spells, or item descriptions.
+- **Creation & Deletion**: Add new custom strings or remove obsolete entries.
+- **Saving**: Direct, compatible writing into `cliloc.*` files (e.g., `cliloc.enu`).
 
-### 10. 🔊 Sounds (Áudio e Efeitos Sonoros)
-- **Player de Áudio Nativo**: Escute os efeitos sonoros diretamente sem travar a interface, utilizando os reprodutores nativos do Linux (`pw-play`, `paplay` ou `aplay`).
-- **Suporte a Sound.def**: Resolução automática de redirecionamentos e traduções de som.
-- **Exportação e Importação de WAV**: Extraia sons em formato WAVE padrão (22.050 Hz Mono 16-bit) ou importe novos arquivos de áudio.
+### 10. 🔊 Sounds (Audio & Sound Effects)
+- **Native Linux Audio Player**: Listen to sound effects without freezing the UI, using standard Linux audio utilities (`pw-play`, `paplay`, or `aplay`).
+- **Sound.def Support**: Automatic resolution of sound redirections and index translations.
+- **WAV Export & Import**: Extract sounds to standard WAVE format (22,050 Hz Mono 16-bit) or import custom audio clips.
 
-### 11. 🗺️ Map (Visualizador de Mundos - Estilo Google Maps com LOD de Alta Performance)
-- **Navegação Interativa e Fluida (Google Maps Style)**: O mapa ocupa toda a área da aba. Navegue livremente arrastando com o botão esquerdo do mouse (Pan & Drag suave) e dê zoom com a roda do mouse focado exatamente onde o cursor está apontando.
-- **Arquitetura LOD (Level of Detail) sem Travamento**: Ao afastar o zoom (`zoom < 0.55`), o visualizador alterna automaticamente para a camada global de visão geral (*Overview Layer* com interpolação bilinear acelerada por hardware), garantindo **60 FPS sem engasgos**, sem sobrecarregar a CPU e eliminando qualquer lentidão em zoom panorâmico.
-- **I/O Contíguo por Colunas 50x mais Rápido**: Leitura otimizada de blocos contíguos de terrenos e índices estáticos em fatias inteiras, reduzindo o tempo de decodificação de chunks para poucos milissegundos.
-- **Cache Inteligente LRU (1.500 Chunks)**: Algoritmo *Least-Recently-Used* que descarta apenas os chunks mais antigos conforme a navegação ocorre, prevenindo estouro de memória e reinicializações de cache.
-- **Zoom Contínuo e Duplo Clique**: Níveis de zoom de 0.08x (mundo inteiro em tela cheia) até 16.0x (detalhe máximo de cada tile). Duplo clique aproxima o ponto selecionado.
-- **Todas as Facetas Suportadas**: Felucca, Trammel, Ilshenar, Malas, Tokuno e Ter Mur com dimensões nativas (7168x4096, 2304x1600, etc.).
-- **Atalhos de Cidades e Marcos (Landmark Presets)**: Dropdown com 24 cidades e pontos de interesse (Britain, Moonglow, Trinsic, Yew, Minoc, Luna, Umbra, Zento, Royal City, Delucia, etc.) para salto instantâneo.
-- **Pulo por Coordenadas (X, Y)**: Digite coordenadas específicas para ir diretamente a qualquer ponto do mundo.
-- **Alternância de Estáticos**: Ligue ou desligue os itens estáticos instantaneamente pelo checkbox da barra superior.
-- **HUD e Barra de Status em Tempo Real**: Indicador de escala métrica dinâmica, exibição das coordenadas em tempo real sob o cursor do mouse `Cursor: (X, Y)`, centro atual da câmera e nível percentual de zoom.
+### 11. 🗺️ Map (World Viewer - High-Performance Google Maps Style with LOD)
+- **Google Maps-Style Navigation**: Map fills the entire tab area. Navigate freely by dragging with the left mouse button (smooth Pan & Drag) and zoom with the mouse wheel focused precisely on the cursor location.
+- **Stutter-Free LOD (Level of Detail)**: When zooming out (`zoom < 0.55`), the viewer switches to the global overview layer with hardware-accelerated bilinear filtering, guaranteeing **60 FPS under 1ms per frame** with zero CPU overhead or disk thrashing.
+- **Column-Contiguous Disk I/O**: Reads contiguous land blocks and static index entries in single read operations, decoding chunks in milliseconds.
+- **Intelligent LRU Chunk Cache**: Least-Recently-Used cache bounded to **1,500 chunks (~150MB)**, evicting only oldest entries to ensure ultra-smooth panning without cache wipes.
+- **Continuous Zoom & Double Click**: Zoom range from 0.08x (entire world view) to 16.0x (individual tile inspection). Double-clicking zooms in on the clicked location.
+- **All Facets Supported**: Felucca, Trammel, Ilshenar, Malas, Tokuno, and Ter Mur with native resolutions (7168x4096, 2304x1600, etc.).
+- **24 Landmark Presets**: Dropdown with instant jumps to major cities and points of interest (Britain, Moonglow, Trinsic, Yew, Minoc, Luna, Umbra, Zento, Royal City, Delucia, etc.).
+- **Coordinate Jump (X, Y)**: Enter specific coordinates to jump directly anywhere in Britannia.
+- **Statics Toggle**: Instantly show or hide static structures and objects.
+- **Real-Time HUD**: Scale bar, live cursor coordinates `Cursor: (X, Y)`, current camera center, and zoom percentage.
 
-### 12. 🏰 Multis (Construções, Casas e Barcos)
-- **Renderizador Isométrico 2.5D**: Constrói a visualização gráfica da edificação projetando cada componente com sua respectiva altura (Z) e profundidade.
-- **Controle de Andares (Height Cutoff)**: Slider para cortar visualmente os tetos ou andares superiores e inspecionar o interior das casas.
-- **Tabela de Componentes**: Lista detalhada de cada ItemID, deslocamento X, Y, Z e flags de construção.
-- **Exportação de Scripts**: Exporte a planta da construção em formato de script texto compatível.
+### 12. 🏰 Multis (Buildings, Houses & Ships)
+- **2.5D Isometric Renderer**: Renders buildings by projecting each component with its respective Z height and sorting depth.
+- **Height Cutoff Slider**: Interactively slice through upper floors and roofs to inspect house interiors.
+- **Components Table**: Detailed list of every ItemID, relative X, Y, Z offsets, and construction flags.
+- **Script Export**: Export building blueprints into compatible text script formats.
 
-### 13. 💡 Light (Máscaras de Iluminação)
-- Visualização das fontes de luz de `light.mul` e `lightidx.mul`.
-- Renderização do gradiente de intensidade sobre fundo escuro.
+### 13. 💡 Light (Lighting Masks)
+- View light sources and masks from `light.mul` and `lightidx.mul`.
+- Render intensity gradients over dark backgrounds.
 
-### 14. 🔤 Fonts (Fontes ASCII)
-- Suporte a todas as fontes ASCII do cliente (0 a 9).
-- Visualização de toda a tabela de caracteres.
-- Caixa de texto para teste e visualização de frases renderizadas ao vivo com a tipografia do jogo.
+### 14. 🔤 Fonts (ASCII Fonts)
+- Full support for all ASCII client fonts (0 through 9).
+- View complete character glyph tables.
+- Interactive live text sandbox to test phrases rendered with in-game typography.
 
-### 15. 🏹 Skills (Habilidades)
-- Tabela completa de habilidades de `skills.mul` e `skills.idx`.
-- Configuração do botão de ação direta (*Use Skill*).
-- Exibição dos grupos de habilidades de `skillgrp.mul`.
+### 15. 🏹 Skills
+- Complete skills table from `skills.mul` and `skills.idx`.
+- Direct action button configuration (*Use Skill*).
+- Skill group hierarchy display from `skillgrp.mul`.
 
-### 16. 💬 Speech (Falas e Gatilhos)
-- Tabela de palavras-chave e gatilhos de `speech.mul`.
-- IDs em big-endian e codificação UTF-8.
-- Filtro de busca e edição de palavras-chave de NPCs e sistemas.
+### 16. 💬 Speech (Triggers & Keywords)
+- Keyword and speech trigger table from `speech.mul`.
+- Big-endian ID decoding and UTF-8 string encoding.
+- Filter and edit NPC speech keywords.
 
-### 17. ⏱️ AnimData (Temporização de Ladrilhos)
-- Leitura e edição de `animdata.mul`.
-- Configuração de quantidade de quadros, intervalo de troca, atraso de início e lista de deslocamento de quadros para itens animados do cenário.
-
----
-
-## 🛠️ Tecnologias e Algoritmos do Core
-
-- **Bob Jenkins lookup3 (hashlittle2)**: Algoritmo exato de hash de 64 bits utilizado pelos pacotes `.uop` para busca de entradas em tempo constante.
-- **Adler32 Checksum**: Verificação de integridade de dados dentro das tabelas de pacotes UOP.
-- **Descompressão Zlib & Mythic**: Algoritmo `MoveToFront` combinado com decodificação de tabela de frequências para arquivos compactados modernos.
-- **Conversão de Cores ARGB1555**: Tabelas pré-computadas de conversão entre 5 bits (0..31) e 8 bits (0..255) para máxima velocidade em Python puro.
-- **Decodificadores e Codificadores RLE**: Processamento bidirecional de fluxos *Run-Length Encoded* para itens estáticos e gumps.
+### 17. ⏱️ AnimData (Tile Animation Timing)
+- Read and edit `animdata.mul`.
+- Configure frame counts, animation intervals, start delays, and frame offset sequences for animated world tiles.
 
 ---
 
-## 📦 Instalação e Requisitos
+## 🛠️ Core Technologies & Algorithms
 
-### Pré-requisitos
-- **Python 3.10 ou superior**
-- **PyQt6** (ou PyQt5)
+- **Bob Jenkins lookup3 (hashlittle2)**: Exact 64-bit hash algorithm used by `.uop` Mythic packages for constant-time entry lookups.
+- **Adler32 Checksum**: Data integrity verification inside UOP entry tables.
+- **Zlib & Mythic Decompression**: `MoveToFront` algorithm combined with frequency table decoding for modern compressed archives.
+- **ARGB1555 Color Conversion**: Precomputed lookup tables converting 5-bit (0..31) and 8-bit (0..255) color channels for maximum execution speed in pure Python.
+- **RLE Decoders & Encoders**: Bidirectional Run-Length Encoding stream processing for static items and gumps.
+
+---
+
+## 📦 Requirements & Installation
+
+### Prerequisites
+- **Python 3.10 or higher**
+- **PyQt6** (or PyQt5)
 - **Pillow** (PIL)
 
-### Instalação das Dependências
+### Installing System Dependencies
 
-No seu ambiente Linux, instale os pacotes via gerenciador de pacotes da sua distro ou via `pip`:
+On your Linux distribution, install packages via the system package manager or via `pip`:
 
 **Ubuntu / Debian:**
 ```bash
@@ -176,113 +178,121 @@ sudo pacman -S python python-pyqt6 python-pillow
 sudo dnf install python3 python3-pyqt6 python3-pillow
 ```
 
-**Ou via pip (Ambiente Virtual ou Usuário):**
+**Via pip (Virtual Environment or User):**
 ```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## 🚀 Como Executar
+## 🚀 How to Run
 
-### 1. Interface Gráfica Completa (GUI)
+### 1. Graphical User Interface (GUI)
 
-Dentro da pasta `UOFiddlerPy/`:
+Inside the `UOFiddlerPy/` directory:
 
 ```bash
 ./run.sh
 ```
 
-Ou diretamente pelo interpretador Python:
+Or directly using the Python interpreter:
 ```bash
 python3 main.py
 ```
 
-Ao abrir, o programa tentará detectar automaticamente o diretório do seu Ultima Online. Se precisar alterar, basta acessar o menu superior:  
+Upon launch, UOFiddlerPy will automatically scan and detect your Ultima Online installation directory. To customize paths manually, use the top menu:  
 **File ➔ Options / Directory Paths...**
 
 ---
 
-### 2. Ferramenta de Linha de Comando (CLI)
+### 2. Command Line Interface (CLI)
 
-O UOFiddlerPy também acompanha uma CLI integrada ([`cli.py`](file:///home/mnunes/UOFiddler/UOFiddlerPy/cli.py)) para inspeções rápidas e exportações em lote via terminal ou scripts de automação:
+UOFiddlerPy includes a powerful CLI utility (`cli.py`) for headless inspections, automation scripts, and batch image extractions:
 
 ```bash
-# Exibir o resumo do cliente carregado
+# Print summary of detected Ultima Online client files
 ./cli.py --info
 
-# Exportar a imagem de um item (ex: Gold Coins 0x0EED / 3821)
+# Export an item image to PNG (e.g., Gold Coins 0x0EED / 3821)
 ./cli.py --export-item 3821 --out /tmp/gold.png
 
-# Exportar um terreno (Land Tile 0x0002)
+# Export a land tile (e.g., Grass 0x0002)
 ./cli.py --export-land 2 --out /tmp/grass.png
 
-# Exportar um Gump (ex: Gump 0)
+# Export a Gump (e.g., Gump ID 0)
 ./cli.py --export-gump 0 --out /tmp/gump0.png
 
-# Exportar a planta isométrica de uma casa/multi (ex: Multi 0)
+# Export an isometric multi house blueprint (e.g., Multi 0)
 ./cli.py --export-multi 0 --out /tmp/house.png
 ```
 
 ---
 
-## 🧪 Testes Automatizados
+## 🧪 Automated Testing
 
-O projeto conta com uma suíte de testes unitários para validar tanto a integridade da decodificação dos arquivos binários quanto o carregamento gráfico das 17 abas em modo *headless* (offscreen):
+The project includes an automated test suite verifying both the binary parsing engine and the PyQt6 GUI in offscreen (headless) mode:
 
 ```bash
-# Executar testes do motor binário (Art, TileData, Hues, Gumps, Multis, Maps)
+# Run core file parser tests (Art, TileData, Hues, Gumps, Multis, Maps, Animations)
 python3 -m unittest tests/test_core.py
 
-# Executar testes de interface gráfica PyQt6 (em modo offscreen)
+# Run PyQt6 GUI tests (in offscreen mode)
 python3 -m unittest tests/test_gui.py
+
+# Run all tests together
+python3 -m unittest discover tests
 ```
 
 ---
 
-## 📂 Estrutura do Código-Fonte
+## 📂 Project Structure
 
 ```
 UOFiddlerPy/
-├── main.py                     # Ponto de entrada da aplicação gráfica
-├── cli.py                      # Interface de linha de comando
-├── run.sh                      # Script executável de inicialização
-├── requirements.txt            # Dependências (PyQt6, Pillow)
-├── README.md                   # Esta documentação
+├── main.py                     # GUI application entry point
+├── cli.py                      # Command-line interface
+├── run.sh                      # Shell launch script
+├── requirements.txt            # Python dependencies (PyQt6, Pillow)
+├── README.md                   # Main documentation (English)
+├── README_pt-br.md             # Documentação em Português
+├── Animationlist.xml           # XML creature and equipment catalog
 ├── tests/
-│   ├── test_core.py            # Testes unitários do motor de arquivos
-│   └── test_gui.py             # Testes unitários da interface PyQt6
+│   ├── test_core.py            # Core engine unit tests
+│   └── test_gui.py             # Headless PyQt6 GUI unit tests
 └── uofiddler/
-    ├── core/                   # Motor binário do Ultima Online (sem dependência de GUI)
-    │   ├── files.py            # Descoberta de caminhos e resolução case-insensitive
-    │   ├── file_index.py       # Leitor de índices (.idx, .mul e Mythic .uop)
-    │   ├── hash_utils.py       # Bob Jenkins lookup3 e Adler32
-    │   ├── mythic.py           # Descompressor Mythic (Move-To-Front)
-    │   ├── colors.py           # Conversões de cores 16-bit RGB 555 / 32-bit RGBA
-    │   ├── art.py              # Decodificador e codificador de itens e terrenos
-    │   ├── tiledata.py         # Leitor e gravador de tiledata.mul (Classic e High Seas)
-    │   ├── hues.py             # 3.000 matizes e aplicação de paletas
-    │   ├── gumps.py            # Leitor e codificador de gumps
-    │   ├── textures.py         # Texturas de terreno (64x64 e 128x128)
-    │   ├── radar_col.py        # Cores de minimapa e cálculo de média
-    │   ├── sounds.py           # Sons, cabeçalhos WAV e playback Linux
-    │   ├── cliloc.py           # Tabelas de strings localizadas
-    │   ├── skills.py           # Habilidades e grupos
-    │   ├── speech.py           # Palavras-chave e gatilhos de fala
-    │   ├── animdata.py         # Temporização de quadros de animação
-    │   ├── light.py            # Máscaras de luz
-    │   ├── multis.py           # Componentes e renderizador isométrico de construções
-    │   ├── animations.py       # Quadros e direções de animações de criaturas
-    │   ├── maps.py             # Facetas, blocos 8x8 de terreno e estáticos
-    │   └── defs.py             # Parsers de bodyconv.def, body.def e mobtypes.txt
-    └── gui/                    # Interface gráfica moderna em PyQt6
-        ├── app.py              # Janela principal e barra de abas
-        ├── theme.py            # Folha de estilos Dark Theme (QSS)
+    ├── core/                   # Pure Python UO binary engine (GUI-independent)
+    │   ├── files.py            # Path detection & case-insensitive file resolution
+    │   ├── file_index.py       # File indexing (.idx, .mul, and Mythic .uop)
+    │   ├── hash_utils.py       # Bob Jenkins lookup3 & Adler32 implementations
+    │   ├── mythic.py           # Mythic Move-To-Front decompressor
+    │   ├── colors.py           # 16-bit RGB 555 / 32-bit RGBA color conversion
+    │   ├── art.py              # Item & land tile encoder/decoder
+    │   ├── tiledata.py         # Classic & High Seas tiledata parser & writer
+    │   ├── hues.py             # 3,000 hues palette engine
+    │   ├── gumps.py            # Gump image decoder & encoder
+    │   ├── textures.py         # 64x64 and 128x128 land texture decoder
+    │   ├── radar_col.py        # Minimap color reader & auto-average calculator
+    │   ├── sounds.py           # Audio parser, WAV header generator & Linux playback
+    │   ├── cliloc.py           # Cliloc string localization table reader/writer
+    │   ├── skills.py           # Skill table & skill group parser
+    │   ├── speech.py           # NPC speech keyword trigger parser
+    │   ├── animdata.py         # Tile animation timing & cycle offsets
+    │   ├── light.py            # Light source masks
+    │   ├── multis.py           # 2.5D building components & isometric projector
+    │   ├── animations.py       # Animation frames & directions (MUL + UOP)
+    │   ├── maps.py             # Facets, 8x8 terrain blocks, statics & column I/O
+    │   └── defs.py             # Parsers for bodyconv.def, body.def, mobtypes.txt & Animationlist.xml
+    └── gui/                    # Modern PyQt6 user interface
+        ├── app.py              # Main window & tab coordinator with Lazy Loading
+        ├── theme.py            # Dark theme style sheet (QSS)
         ├── widgets/
-        │   ├── image_canvas.py # Canvas interativo com zoom e pan
-        │   ├── color_bar.py    # Barra de 32 cores do Hue
-        │   └── virtual_tile_view.py # Tabela virtualizada para 65.536+ itens a 60 FPS
-        └── tabs/               # Todas as 17 abas implementadas
+        │   ├── splash_screen.py# Fast splash screen with animated progress steps (~1s)
+        │   ├── lazy_tab.py     # Lazy load wrapper with progress bar
+        │   ├── image_canvas.py # Interactive canvas with zoom and pan
+        │   ├── color_bar.py    # 32-color Hue palette bar
+        │   ├── virtual_tile_view.py # Virtualized Grid / List browser (60 FPS)
+        │   └── interactive_map_view.py # Google Maps-style viewer with LOD & LRU
+        └── tabs/               # All 17 tabs implemented
             ├── items_tab.py
             ├── land_tiles_tab.py
             ├── tiledata_tab.py
@@ -305,6 +315,6 @@ UOFiddlerPy/
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Distribuído sob os mesmos princípios de código aberto do ecossistema Ultima Online. Sinta-se livre para utilizar, modificar e aprimorar!
+Distributed under the open-source spirit of the Ultima Online community. Feel free to use, modify, and enhance!
