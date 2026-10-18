@@ -1,0 +1,5 @@
+{
+  "summary":  "Documentação técnica completa da análise estática reversa do cliente 3D / Enhanced Client de Ultima Online (UOSA.exe v4.0.117.1). Detalha a transição do sistema legado para pacotes UOP puros (MYP v5), leitura em chunks, migração de Equipconv.def para data/gamedata/equipconv.csv no GameData.uop, mapeamento de legacyId para newId, o sistema de texturas dinâmicas (%08d_GumpArt, %08d_TileArt), o formato AMOU em Paperdoll.uop, e o pipeline de resolução de Item ID para Gump ID no motor 3D.",
+  "updatedAt":  "2026-10-18T02:29:59.126052625Z",
+  "userFacing":  true
+}
