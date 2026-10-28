@@ -302,6 +302,33 @@ class TestGUI(unittest.TestCase):
 
         win.close()
 
+    def test_animations_tab_export_sprites(self):
+        import tempfile
+        from uofiddler.gui.tabs.export_sprites_dialog import ExportSpritesDialog
+
+        win = MainWindow()
+        anim_tab = win.tab_animations
+        self.assertTrue(hasattr(anim_tab, "btn_export_sprites"))
+        self.assertEqual(anim_tab.btn_export_sprites.text(), "Exportar sprites")
+
+        # Open ExportSpritesDialog
+        dlg = ExportSpritesDialog(anim_tab, initial_body=400, initial_action=0)
+        self.assertTrue(dlg.btn_export.isEnabled())
+        self.assertIsNotNone(dlg._cached_sheet)
+        self.assertEqual(dlg._cached_meta["rows"], 8)
+        self.assertEqual(dlg._cached_meta["cols"], 10)
+        self.assertEqual(dlg._cached_meta["total_frames"], 80)
+
+        # Verify export to file
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_png = os.path.join(tmpdir, "test_spritesheet.png")
+            dlg._cached_sheet.save(out_png, "PNG")
+            self.assertTrue(os.path.exists(out_png))
+            self.assertGreater(os.path.getsize(out_png), 1000)
+
+        dlg.close()
+        win.close()
+
 
 if __name__ == "__main__":
     unittest.main()

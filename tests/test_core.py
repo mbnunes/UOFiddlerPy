@@ -115,6 +115,16 @@ class TestCore(unittest.TestCase):
         frames = am.get_animation_frames(400, 0, 0)
         self.assertTrue(len(frames) > 0)
 
+        # Test spritesheet creation with all directions
+        sheet, meta = am.create_spritesheet(400, 0, layout="grid")
+        self.assertIsNotNone(sheet)
+        self.assertEqual(meta["rows"], 8)
+        self.assertEqual(meta["cols"], len(frames))
+        self.assertEqual(meta["total_frames"], 8 * len(frames))
+        self.assertGreater(meta["cell_width"], 0)
+        self.assertGreater(meta["cell_height"], 0)
+        self.assertEqual(sheet.size, (meta["total_width"], meta["total_height"]))
+
     def test_map_manager(self):
         mp = MapManager.get_instance()
         self.assertTrue(len(mp.maps) >= 6)

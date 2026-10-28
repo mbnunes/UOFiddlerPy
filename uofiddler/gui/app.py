@@ -138,7 +138,7 @@ class MainWindow(QMainWindow):
     def __getattr__(self, name):
         tab_attr_map = {
             "tab_items": 0, "tab_land": 1, "tab_land_tiles": 1, "tab_tiledata": 2, "tab_gumps": 3,
-            "tab_hues": 4, "tab_textures": 5, "tab_radar": 6, "tab_anim": 7,
+            "tab_hues": 4, "tab_textures": 5, "tab_radar": 6, "tab_anim": 7, "tab_animations": 7,
             "tab_cliloc": 8, "tab_sounds": 9, "tab_map": 10, "tab_multis": 11,
             "tab_light": 12, "tab_fonts": 13, "tab_skills": 14, "tab_speech": 15,
             "tab_animdata": 16, "tab_gamedata": 17

@@ -7,7 +7,7 @@ AnimationSequence.uop, frame extraction, palette decoding, and 8 directions.
 import os
 import struct
 import zlib
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Any
 from dataclasses import dataclass
 from PIL import Image
 from uofiddler.core.files import FileManager
@@ -426,3 +426,135 @@ class AnimationsManager:
             results.append(AnimationFrame(center_x=eff_center_x, center_y=y_center, image=img))
 
         return results
+
+    def create_spritesheet(
+        self,
+        body: int,
+        action: int,
+        directions: Optional[List[int]] = None,
+        layout: str = "grid",
+        align_anchor: bool = True,
+        padding: int = 0,
+    ) -> Tuple[Optional[Image.Image], Dict[str, Any]]:
+        """
+        Creates a combined spritesheet Image with all frames of the specified directions.
+        Supports layout:
+          - "grid": rows correspond to directions (0 to len(directions)-1), columns to frames.
+          - "horizontal": all frames in a single horizontal strip.
+          - "vertical": all frames in a single vertical strip.
+        If align_anchor is True, aligns each frame according to its center_x and center_y anchor.
+        """
+        if directions is None:
+            directions = list(range(8))
+
+        frames_by_dir: Dict[int, List[AnimationFrame]] = {
+            d: self.get_animation_frames(body=body, action=action, direction=d) for d in directions
+        }
+        all_frames = [f for frames in frames_by_dir.values() for f in frames]
+        if not all_frames:
+            return None, {}
+
+        max_frames = max((len(f) for f in frames_by_dir.values()), default=0)
+        if max_frames == 0:
+            return None, {}
+
+        if align_anchor:
+            min_x = min(-f.center_x for f in all_frames)
+            max_x = max(-f.center_x + f.image.width for f in all_frames)
+            min_y = min(f.center_y for f in all_frames)
+            max_y = max(f.center_y + f.image.height for f in all_frames)
+            cell_w = max(1, max_x - min_x)
+            cell_h = max(1, max_y - min_y)
+            anchor_x = -min_x
+            anchor_y = -min_y
+        else:
+            cell_w = max(1, max(f.image.width for f in all_frames))
+            cell_h = max(1, max(f.image.height for f in all_frames))
+            anchor_x = cell_w // 2
+            anchor_y = cell_h // 2
+            min_x = 0
+            min_y = 0
+
+        num_dirs = len(directions)
+        if layout == "grid":
+            cols = max_frames
+            rows = num_dirs
+            total_w = cols * cell_w + (cols + 1) * padding
+            total_h = rows * cell_h + (rows + 1) * padding
+            sheet = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+            for r_idx, d in enumerate(directions):
+                for c_idx, f in enumerate(frames_by_dir[d]):
+                    cell_left = padding + c_idx * (cell_w + padding)
+                    cell_top = padding + r_idx * (cell_h + padding)
+                    if align_anchor:
+                        ox = -f.center_x - min_x
+                        oy = f.center_y - min_y
+                    else:
+                        ox = (cell_w - f.image.width) // 2
+                        oy = (cell_h - f.image.height) // 2
+                    sheet.paste(f.image, (cell_left + ox, cell_top + oy), f.image)
+
+        elif layout == "horizontal":
+            total_frames = sum(len(f) for f in frames_by_dir.values())
+            cols = total_frames
+            rows = 1
+            total_w = cols * cell_w + (cols + 1) * padding
+            total_h = cell_h + 2 * padding
+            sheet = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+            c_idx = 0
+            for d in directions:
+                for f in frames_by_dir[d]:
+                    cell_left = padding + c_idx * (cell_w + padding)
+                    cell_top = padding
+                    if align_anchor:
+                        ox = -f.center_x - min_x
+                        oy = f.center_y - min_y
+                    else:
+                        ox = (cell_w - f.image.width) // 2
+                        oy = (cell_h - f.image.height) // 2
+                    sheet.paste(f.image, (cell_left + ox, cell_top + oy), f.image)
+                    c_idx += 1
+
+        elif layout == "vertical":
+            total_frames = sum(len(f) for f in frames_by_dir.values())
+            cols = 1
+            rows = total_frames
+            total_w = cell_w + 2 * padding
+            total_h = rows * cell_h + (rows + 1) * padding
+            sheet = Image.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+            r_idx = 0
+            for d in directions:
+                for f in frames_by_dir[d]:
+                    cell_left = padding
+                    cell_top = padding + r_idx * (cell_h + padding)
+                    if align_anchor:
+                        ox = -f.center_x - min_x
+                        oy = f.center_y - min_y
+                    else:
+                        ox = (cell_w - f.image.width) // 2
+                        oy = (cell_h - f.image.height) // 2
+                    sheet.paste(f.image, (cell_left + ox, cell_top + oy), f.image)
+                    r_idx += 1
+        else:
+            raise ValueError(f"Unknown layout: {layout}")
+
+        meta: Dict[str, Any] = {
+            "body": body,
+            "action": action,
+            "directions": directions,
+            "frame_counts": {d: len(frames_by_dir[d]) for d in directions},
+            "total_frames": sum(len(f) for f in frames_by_dir.values()),
+            "max_frames": max_frames,
+            "cols": cols,
+            "rows": rows,
+            "layout": layout,
+            "cell_width": cell_w,
+            "cell_height": cell_h,
+            "total_width": total_w,
+            "total_height": total_h,
+            "anchor_x": anchor_x,
+            "anchor_y": anchor_y,
+            "padding": padding,
+            "align_anchor": align_anchor,
+        }
+        return sheet, meta

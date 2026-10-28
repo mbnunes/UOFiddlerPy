@@ -15,6 +15,7 @@ from PyQt6.QtGui import QFont, QColor
 from uofiddler.core.animations import AnimationsManager, AnimationFrame
 from uofiddler.core.defs import DefsManager, AnimationDef
 from uofiddler.gui.widgets.image_canvas import ImageCanvas
+from uofiddler.gui.tabs.export_sprites_dialog import ExportSpritesDialog
 
 ACTIONS_MONSTER = [
     (0, "Walk"),
@@ -251,6 +252,17 @@ class AnimationsTab(QWidget):
         det_layout.addRow("Dimensões:", self.lbl_det_res)
         left_layout.addWidget(details_box)
 
+        # Export box
+        export_box = QGroupBox("Exportação")
+        export_layout = QVBoxLayout(export_box)
+        export_layout.setSpacing(6)
+        self.btn_export_sprites = QPushButton("Exportar sprites")
+        self.btn_export_sprites.setStyleSheet("font-weight: bold; padding: 6px;")
+        self.btn_export_sprites.setToolTip("Exportar todos os frames de todas as direções da animação em um arquivo PNG")
+        self.btn_export_sprites.clicked.connect(self.on_export_sprites)
+        export_layout.addWidget(self.btn_export_sprites)
+        left_layout.addWidget(export_box)
+
         left_layout.addStretch()
         splitter.addWidget(left_widget)
 
@@ -473,3 +485,11 @@ class AnimationsTab(QWidget):
         self.lbl_fps.setText(f"{value} fps")
         if self.timer.isActive():
             self.timer.setInterval(int(1000 / value))
+
+    def on_export_sprites(self):
+        body = self.body_spin.value()
+        action = self.action_combo.currentData()
+        if action is None:
+            action = 0
+        dlg = ExportSpritesDialog(self, initial_body=body, initial_action=action)
+        dlg.exec()
